@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "postinstall": "prisma generate",
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "prisma generate"
   },
   "keywords": [],
   "author": "",

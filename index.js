@@ -18,9 +18,9 @@ const upload = multer({ storage });
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
-app.use('/uploads', express.static('/tmp')); // Apuntamos la ruta a /tmp
-
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 // Autenticación (Login)
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
