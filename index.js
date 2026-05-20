@@ -1,65 +1,150 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
-// 1. Obtener el WOD del día
+// Autenticación (Login)
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await prisma.usuario.findUnique({ where: { username } });
+        if (user && user.password === password) {
+            res.json(user);
+        } else {
+            res.status(401).json({ error: "Credenciales incorrectas" });
+        }
+    } catch (e) { res.status(500).json({ error: "Error en el servidor" }); }
+});
+
+// Registro de usuarios
+app.post('/api/usuarios', upload.single('foto'), async (req, res) => {
+    const { username, password, font, nombre, apellido, edad, horarioClase, rol, categoria } = req.body;
+    const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    try {
+        const usuario = await prisma.usuario.create({
+            data: { username, password, nombre, apellido, edad: parseInt(edad), horarioClase, rol, categoria, fotoUrl }
+        });
+        res.status(201).json(usuario);
+    } catch (e) { res.status(400).json({ error: "Error al registrar" }); }
+});
+
+app.get('/api/usuarios/:username', async (req, res) => {
+    const user = await prisma.usuario.findUnique({ where: { username: req.params.username } });
+    user ? res.json(user) : res.status(404).json({ error: "No encontrado" });
+});
+
+// Historial personal del atleta
+app.get('/api/usuarios/:username/historial', async (req, res) => {
+    try {
+        const usuario = await prisma.usuario.findUnique({ where: { username: req.params.username } });
+        if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        const historial = await prisma.score.findMany({
+            where: { usuarioId: usuario.id },
+            include: { wod: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(historial);
+    } catch (e) { res.status(500).json({ error: "Error al obtener historial" }); }
+});
+
+// Guardar un RM nuevo
+app.post('/api/rms', async (req, res) => {
+    const { username, ejercicio, peso } = req.body;
+    try {
+        const usuario = await prisma.usuario.findUnique({ where: { username } });
+        if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        const nuevoRm = await prisma.rm.create({
+            data: {
+                usuarioId: usuario.id,
+                ejercicio: ejercicio.toUpperCase().trim(),
+                peso: parseFloat(peso)
+            }
+        });
+        res.status(201).json(nuevoRm);
+    } catch (e) { 
+        console.error(e);
+        res.status(400).json({ error: "Error al guardar el RM" }); 
+    }
+});
+
+// OBTENER LOS RMs
+app.get('/api/usuarios/:username/rms', async (req, res) => {
+    try {
+        const usuario = await prisma.usuario.findUnique({ where: { username: req.params.username } });
+        if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        const rms = await prisma.rm.findMany({
+            where: { usuarioId: usuario.id },
+            orderBy: { ejercicio: 'asc' }
+        });
+        res.json(rms);
+    } catch (e) { res.status(500).json({ error: "Error al obtener RMs" }); }
+});
+
+// --- NUEVO ENDPOINT: ACTUALIZAR UN RM EXISTENTE ---
+app.put('/api/rms/:id', async (req, res) => {
+    const { id } = req.params;
+    const { peso } = req.body;
+    try {
+        const rmActualizado = await prisma.rm.update({
+            where: { id: id },
+            data: { peso: parseFloat(peso) }
+        });
+        res.json(rmActualizado);
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ error: "No se pudo actualizar el RM. Verifica los datos." });
+    }
+});
+
+// Configuración de WODs
+app.post('/api/wods', async (req, res) => {
+    const { tipo, descripcion, goal } = req.body;
+    try {
+        const wod = await prisma.wod.create({ data: { fecha: new Date(), tipo, descripcion, goal } });
+        res.status(201).json(wod);
+    } catch (e) { res.status(400).json({ error: "Error al crear WOD" }); }
+});
+
 app.get('/api/wods/today', async (req, res) => {
-    try {
-        const wod = await prisma.wod.findFirst({
-            orderBy: { fecha: 'desc' },
-            include: { ejercicios: true }
-        });
-        res.json(wod || { mensaje: 'No hay WOD cargado para hoy' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el WOD' });
-    }
+    const wod = await prisma.wod.findFirst({ orderBy: { fecha: 'desc' } });
+    res.json(wod || {});
 });
 
-// 2. Registro de nuevo Atleta
-app.post('/api/usuarios', async (req, res) => {
-    const { username, password, nombre, apellido, edad, horarioClase } = req.body;
-    try {
-        const nuevoUsuario = await prisma.usuario.create({
-            data: { username, password, nombre, apellido, edad: parseInt(edad), horarioClase }
-        });
-        res.status(201).json({ mensaje: 'Atleta registrado con éxito', usuario: nuevoUsuario });
-    } catch (error) {
-        res.status(400).json({ error: 'Error al registrar. Es posible que el usuario ya exista.' });
-    }
-});
-
-// 3. Cargar un nuevo Score
+// Guardado y listado de Scores diarios
 app.post('/api/scores', async (req, res) => {
     const { username, wodId, tiempoPuntaje, categoria } = req.body;
     try {
-        // Primero buscamos al usuario por su username
         const usuario = await prisma.usuario.findUnique({ where: { username } });
         if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
 
         const nuevoScore = await prisma.score.create({
-            data: {
-                usuarioId: usuario.id,
-                wodId: wodId,
-                tiempoPuntaje,
-                categoria
-            }
+            data: { usuarioId: usuario.id, wodId, tiempoPuntaje, categoria }
         });
         res.status(201).json(nuevoScore);
-    } catch (error) {
-        res.status(400).json({ error: 'Error. ¿Ya cargaste tu score para este WOD?' });
-    }
+    } catch (error) { res.status(400).json({ error: 'Error al cargar score' }); }
 });
 
-// 4. Obtener Leaderboard del día
 app.get('/api/scores/today', async (req, res) => {
     try {
         const wod = await prisma.wod.findFirst({ orderBy: { fecha: 'desc' } });
@@ -67,17 +152,11 @@ app.get('/api/scores/today', async (req, res) => {
 
         const scores = await prisma.score.findMany({
             where: { wodId: wod.id },
-            include: {
-                usuario: { select: { nombre: true, apellido: true, horarioClase: true } }
-            },
-            orderBy: { tiempoPuntaje: 'asc' } // Ordena del menor tiempo al mayor
+            include: { usuario: { select: { nombre: true, apellido: true, horarioClase: true } } },
+            orderBy: { tiempoPuntaje: 'asc' }
         });
         res.json({ wodId: wod.id, scores });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al cargar el Leaderboard' });
-    }
+    } catch (error) { res.status(500).json({ error: 'Error' }); }
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
