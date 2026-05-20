@@ -1,0 +1,65 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Rol {
+  ATLETA
+  COACH
+}
+
+enum Categoria {
+  RX
+  SCALED
+}
+
+model Usuario {
+  id           String    @id @default(uuid())
+  username     String    @unique
+  password     String    // Almacenar siempre hasheada
+  nombre       String
+  apellido     String
+  edad         Int
+  horarioClase String    // Ejemplo: "08:00", "19:30"
+  rol          Rol       @default(ATLETA)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  scores       Score[]
+}
+
+model Wod {
+  id          String           @id @default(uuid())
+  fecha       DateTime         @unique @db.Date
+  tipo        String           // AMRAP, FOR TIME, EMOM, etc.
+  descripcion String           @db.Text
+  goal        String           @db.Text
+  createdAt   DateTime         @default(now())
+  ejercicios  EjercicioVideo[]
+  scores      Score[]
+}
+
+model EjercicioVideo {
+  id        String   @id @default(uuid())
+  wodId     String
+  nombre    String   // Ejemplo: "Thrusters"
+  urlVideo  String   // Enlace directo a YouTube
+  wod       Wod      @relation(fields: [wodId], references: [id], onDelete: Cascade)
+}
+
+model Score {
+  id            String    @id @default(uuid())
+  usuarioId     String
+  wodId         String
+  tiempoPuntaje String    // Ejemplo: "12:45" o "150 reps"
+  categoria     Categoria @default(RX)
+  createdAt     DateTime  @default(now())
+  
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  wod           Wod       @relation(fields: [wodId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, wodId]) // Un usuario solo puede subir un score por WOD
+}

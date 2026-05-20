@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IronBox CrossFit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: 'Roboto', sans-serif; }
+        .font-bebas { font-family: 'Teko', sans-serif; }
+        .iron-red { color: #d32f2f; }
+        .bg-iron-red { background-color: #d32f2f; }
+        .tab-active { color: #ffffff; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <header class="flex justify-between items-center p-4 border-b border-gray-800">
+        <div class="text-2xl font-bebas tracking-wide">
+            IRON<span class="iron-red">BOX</span>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 pb-24" id="app-content">
+        
+        <div id="seccion-wod">
+            <h1 class="text-5xl font-bebas text-center mb-2 mt-4 uppercase">Wod del Día</h1>
+            <p class="text-center text-gray-400 text-sm mb-6" id="fecha-wod">Cargando...</p>
+
+            <div class="bg-[#1e1e1e] rounded-lg p-5 mb-6 shadow-lg border border-gray-800">
+                <h2 class="iron-red font-bold text-lg mb-1">WORKOUT</h2>
+                <h3 class="font-bold text-xl mb-4" id="tipo-wod">---</h3>
+                <div id="descripcion-wod" class="text-gray-300">
+                    Cargando rutina...
+                </div>
+                <hr class="border-gray-700 my-4">
+                <h2 class="iron-red font-bold text-lg mb-1">GOAL</h2>
+                <p class="text-gray-300" id="goal-wod">---</p>
+            </div>
+        </div>
+
+        <div id="seccion-scores" class="hidden">
+            <h1 class="text-5xl font-bebas text-center mb-6 mt-4 uppercase">Leaderboard</h1>
+
+            <form id="form-score" class="bg-[#1e1e1e] rounded-lg p-4 mb-6 shadow-lg border border-gray-800">
+                <h3 class="font-bebas text-2xl mb-3">Cargar mi tiempo</h3>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="score-username" placeholder="Tu Usuario" class="flex-1 bg-black border border-gray-700 rounded p-2 text-white" required>
+                    <select id="score-categoria" class="bg-black border border-gray-700 rounded p-2 text-white" required>
+                        <option value="RX">RX</option>
+                        <option value="SCALED">Scaled</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="score-tiempo" placeholder="Tiempo (ej: 12:45)" class="flex-1 bg-black border border-gray-700 rounded p-2 text-white" required>
+                    <button type="submit" class="bg-iron-red text-white font-bebas text-xl rounded px-4 hover:bg-red-700">SUBIR</button>
+                </div>
+            </form>
+
+            <div class="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800 shadow-lg">
+                <div class="grid grid-cols-4 bg-iron-red text-white p-3 font-bebas text-lg tracking-wide">
+                    <div class="col-span-2">ATLETA</div>
+                    <div class="text-center">CAT</div>
+                    <div class="text-right">TIEMPO</div>
+                </div>
+                <div id="lista-scores" class="divide-y divide-gray-800">
+                    <div class="p-4 text-center text-gray-500 text-sm">Cargando resultados...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="seccion-perfil" class="hidden">
+            <h1 class="text-5xl font-bebas text-center mb-6 mt-4 uppercase">Nuevo Atleta</h1>
+            <form id="form-registro" class="bg-[#1e1e1e] rounded-lg p-5 shadow-lg border border-gray-800 flex flex-col gap-4">
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Usuario</label>
+                    <input type="text" id="reg-username" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Contraseña</label>
+                    <input type="password" id="reg-password" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 font-bold uppercase">Nombre</label>
+                        <input type="text" id="reg-nombre" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 font-bold uppercase">Apellido</label>
+                        <input type="text" id="reg-apellido" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 font-bold uppercase">Edad</label>
+                        <input type="number" id="reg-edad" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-400 font-bold uppercase">Horario</label>
+                        <select id="reg-horario" class="w-full bg-black border border-gray-700 rounded p-2 text-white mt-1" required>
+                            <option value="08:00">08:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="bg-iron-red text-white font-bebas text-xl rounded p-3 mt-4 hover:bg-red-700 transition">REGISTRARSE</button>
+            </form>
+        </div>
+
+    </main>
+
+    <nav class="bg-black border-t border-gray-800 fixed bottom-0 w-full flex justify-around p-3 pb-5 text-xs text-gray-400">
+        <button onclick="mostrarSeccion('wod', this)" class="nav-btn tab-active flex flex-col items-center hover:text-white">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            WOD
+        </button>
+        <button onclick="mostrarSeccion('scores', this)" class="nav-btn flex flex-col items-center hover:text-white">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            SCORES
+        </button>
+        <button onclick="mostrarSeccion('perfil', this)" class="nav-btn flex flex-col items-center hover:text-white">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            PERFIL
+        </button>
+    </nav>
+
+    <script>
+        let wodActualId = null;
+
+        // Carga inicial del WOD
+        async function cargarWod() {
+            try {
+                const response = await fetch('/api/wods/today');
+                const data = await response.json();
+                
+                if(data.id) {
+                    wodActualId = data.id;
+                    document.getElementById('fecha-wod').innerText = new Date(data.fecha).toLocaleDateString('es-ES');
+                    document.getElementById('tipo-wod').innerText = data.tipo;
+                    document.getElementById('goal-wod').innerText = data.goal;
+
+                    const lineas = data.descripcion.split('\n');
+                    const listaHtml = lineas.map(linea => linea.trim() !== '' ? `<li class="ml-4">${linea}</li>` : '').join('');
+                    document.getElementById('descripcion-wod').innerHTML = `<ul class="list-disc space-y-2 text-gray-300">${listaHtml}</ul>`;
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        // Carga de los Scores para la tabla
+        async function cargarScores() {
+            try {
+                const response = await fetch('/api/scores/today');
+                const data = await response.json();
+                
+                const contenedor = document.getElementById('lista-scores');
+                
+                if(!data.scores || data.scores.length === 0) {
+                    contenedor.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Aún no hay scores cargados hoy. ¡Sé el primero!</div>';
+                    return;
+                }
+
+                let html = '';
+                data.scores.forEach(score => {
+                    html += `
+                        <div class="grid grid-cols-4 p-3 text-sm items-center">
+                            <div class="col-span-2 text-white font-bold">${score.usuario.nombre} ${score.usuario.apellido} <span class="block text-xs text-gray-500 font-normal">Clase: ${score.usuario.horarioClase}hs</span></div>
+                            <div class="text-center text-gray-400 font-bold">${score.categoria}</div>
+                            <div class="text-right text-iron-red font-bold text-lg">${score.tiempoPuntaje}</div>
+                        </div>
+                    `;
+                });
+                contenedor.innerHTML = html;
+            } catch (error) { console.error(error); }
+        }
+
+        // Navegación entre pestañas
+        function mostrarSeccion(seccion, btnElement) {
+            document.getElementById('seccion-wod').classList.add('hidden');
+            document.getElementById('seccion-scores').classList.add('hidden');
+            document.getElementById('seccion-perfil').classList.add('hidden');
+            
+            document.getElementById(`seccion-${seccion}`).classList.remove('hidden');
+
+            // Efecto visual en la barra inferior
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('tab-active', 'iron-red'));
+            if(btnElement) btnElement.classList.add('tab-active', 'iron-red');
+
+            // Refrescar scores al entrar a la pestaña
+            if(seccion === 'scores') cargarScores();
+        }
+
+        // Enviar nuevo Score
+        document.getElementById('form-score').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!wodActualId) return alert('No hay un WOD activo para cargar scores.');
+
+            const data = {
+                username: document.getElementById('score-username').value,
+                wodId: wodActualId,
+                categoria: document.getElementById('score-categoria').value,
+                tiempoPuntaje: document.getElementById('score-tiempo').value
+            };
+
+            const response = await fetch('/api/scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if(response.ok) {
+                document.getElementById('score-tiempo').value = '';
+                cargarScores(); // Refresca la tabla automáticamente
+            } else {
+                alert('Usuario no encontrado o ya cargaste tu tiempo.');
+            }
+        });
+
+        // Enviar nuevo Registro
+        document.getElementById('form-registro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                username: document.getElementById('reg-username').value,
+                password: document.getElementById('reg-password').value,
+                nombre: document.getElementById('reg-nombre').value,
+                apellido: document.getElementById('reg-apellido').value,
+                edad: document.getElementById('reg-edad').value,
+                horarioClase: document.getElementById('reg-horario').value
+            };
+
+            const response = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if(response.ok) {
+                alert('¡Registrado!');
+                document.getElementById('form-registro').reset();
+            }
+        });
+
+        // Inicializar App
+        cargarWod();
+    </script>
+</body>
+</html>

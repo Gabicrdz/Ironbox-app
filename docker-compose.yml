@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: ironbox_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin_ironbox
+      POSTGRES_PASSWORD: IronBoxSecurePassword2026
+      POSTGRES_DB: ironbox_core
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_storage:/var/lib/postgresql/data
+
+volumes:
+  db_storage:
