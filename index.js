@@ -6,10 +6,10 @@ const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = 3000;
 
+// 1. CAMBIO PARA VERCEL: Usar la carpeta temporal /tmp
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: '/tmp', 
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
     }
@@ -19,7 +19,7 @@ const upload = multer({ storage });
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('/tmp')); // Apuntamos la ruta a /tmp
 
 // Autenticación (Login)
 app.post('/api/login', async (req, res) => {
@@ -36,7 +36,7 @@ app.post('/api/login', async (req, res) => {
 
 // Registro de usuarios
 app.post('/api/usuarios', upload.single('foto'), async (req, res) => {
-    const { username, password, font, nombre, apellido, edad, horarioClase, rol, categoria } = req.body;
+    const { username, password, nombre, apellido, edad, horarioClase, rol, categoria } = req.body;
     const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
     try {
         const usuario = await prisma.usuario.create({
@@ -81,13 +81,10 @@ app.post('/api/rms', async (req, res) => {
             }
         });
         res.status(201).json(nuevoRm);
-    } catch (e) { 
-        console.error(e);
-        res.status(400).json({ error: "Error al guardar el RM" }); 
-    }
+    } catch (e) { res.status(400).json({ error: "Error al guardar el RM" }); }
 });
 
-// OBTENER LOS RMs
+// Obtener RMs
 app.get('/api/usuarios/:username/rms', async (req, res) => {
     try {
         const usuario = await prisma.usuario.findUnique({ where: { username: req.params.username } });
@@ -101,7 +98,7 @@ app.get('/api/usuarios/:username/rms', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Error al obtener RMs" }); }
 });
 
-// --- NUEVO ENDPOINT: ACTUALIZAR UN RM EXISTENTE ---
+// Actualizar RM
 app.put('/api/rms/:id', async (req, res) => {
     const { id } = req.params;
     const { peso } = req.body;
@@ -111,10 +108,7 @@ app.put('/api/rms/:id', async (req, res) => {
             data: { peso: parseFloat(peso) }
         });
         res.json(rmActualizado);
-    } catch (e) {
-        console.error(e);
-        res.status(400).json({ error: "No se pudo actualizar el RM. Verifica los datos." });
-    }
+    } catch (e) { res.status(400).json({ error: "Error al actualizar" }); }
 });
 
 // Configuración de WODs
@@ -131,7 +125,7 @@ app.get('/api/wods/today', async (req, res) => {
     res.json(wod || {});
 });
 
-// Guardado y listado de Scores diarios
+// Scores
 app.post('/api/scores', async (req, res) => {
     const { username, wodId, tiempoPuntaje, categoria } = req.body;
     try {
@@ -159,4 +153,5 @@ app.get('/api/scores/today', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error' }); }
 });
 
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+// 2. CAMBIO PARA VERCEL: Exportar la app en lugar de hacer app.listen
+module.exports = app;
