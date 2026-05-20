@@ -1,26 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const multer = require('multer');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
 
-// 1. CAMBIO PARA VERCEL: Usar la carpeta temporal /tmp
-const storage = multer.diskStorage({
-    destination: '/tmp', 
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
-
 app.use(cors());
-app.use(express.json());
+// Aumentamos el límite de JSON a 10mb para permitir recibir el texto de las fotos
+app.use(express.json({ limit: '10mb' })); 
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 // Autenticación (Login)
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
@@ -34,16 +28,18 @@ app.post('/api/login', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Error en el servidor" }); }
 });
 
-// Registro de usuarios
-app.post('/api/usuarios', upload.single('foto'), async (req, res) => {
-    const { username, password, nombre, apellido, edad, horarioClase, rol, categoria } = req.body;
-    const fotoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+// Registro de usuarios (SIN MULTER - Recibe Base64)
+app.post('/api/usuarios', async (req, res) => {
+    const { username, password, nombre, apellido, edad, horarioClase, rol, categoria, fotoUrl } = req.body;
     try {
         const usuario = await prisma.usuario.create({
             data: { username, password, nombre, apellido, edad: parseInt(edad), horarioClase, rol, categoria, fotoUrl }
         });
         res.status(201).json(usuario);
-    } catch (e) { res.status(400).json({ error: "Error al registrar" }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(400).json({ error: "Error al registrar" }); 
+    }
 });
 
 app.get('/api/usuarios/:username', async (req, res) => {
@@ -153,5 +149,4 @@ app.get('/api/scores/today', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Error' }); }
 });
 
-// 2. CAMBIO PARA VERCEL: Exportar la app en lugar de hacer app.listen
 module.exports = app;

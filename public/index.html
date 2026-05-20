@@ -8,7 +8,7 @@
     <style>
         body { 
             background-color: #0a0a0a; 
-            background-image: url('/public/fondo.jpeg');
+            background-image: url('/fondo-gim.jpeg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -30,7 +30,7 @@
 <body class="flex flex-col h-screen">
 
     <header class="p-4 flex justify-between items-center glass-panel shadow-md">
-        <img src="/logo.png" alt="IronBox" class="h-10 w-auto object-contain" onerror="this.style.display='none'"> 
+        <h1 class="text-3xl font-bebas tracking-widest uppercase">IRON <span class="iron-red">BOX</span></h1>
         <div class="flex items-center gap-2">
             <div id="user-badge" class="hidden text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700 font-bold"></div>
             <button id="btn-logout" onclick="cerrarSesion()" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded transition shadow">
@@ -153,11 +153,13 @@
                         <select name="categoria" class="w-full p-3 bg-black border border-gray-700 rounded text-white">
                             <option value="PRINCIPIANTE">PRINCIPIANTE</option><option value="SCALED">SCALED</option><option value="RX">RX</option>
                         </select>
+                        
                         <div class="bg-black border border-gray-700 p-3 rounded text-xs text-gray-400">
                             <label class="block font-bold mb-2">FOTO DE PERFIL:</label>
-                            <input type="file" name="foto" class="w-full cursor-pointer">
+                            <input type="file" name="foto" accept="image/*" class="w-full cursor-pointer">
                         </div>
-                        <button class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded mt-2 transition">CREAR CUENTA</button>
+                        
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded mt-2 transition" id="btn-submit-reg">CREAR CUENTA</button>
                     </form>
                 </div>
 
@@ -269,23 +271,11 @@
             if(res.ok) { document.getElementById('form-rm').reset(); alert('¡RM Guardado!'); cargarRms(); }
         };
 
-        // --- NUEVA LÓGICA DE ACTUALIZACIÓN DESDE INTERFAZ ---
         async function actualizarRm(id, ejercicio) {
             const nuevoPeso = prompt(`Ingresa las nuevas repeticiones máximas en Kilos para ${ejercicio}:`);
             if (nuevoPeso === null || nuevoPeso.trim() === "" || isNaN(nuevoPeso)) return;
-
-            const res = await fetch(`/api/rms/${id}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ peso: nuevoPeso })
-            });
-
-            if(res.ok) {
-                alert('¡Peso actualizado con éxito!');
-                cargarRms();
-            } else {
-                alert('No se pudo actualizar el peso.');
-            }
+            const res = await fetch(`/api/rms/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ peso: nuevoPeso }) });
+            if(res.ok) { alert('¡Peso actualizado con éxito!'); cargarRms(); } else { alert('No se pudo actualizar el peso.'); }
         }
 
         async function cargarRms() {
@@ -295,16 +285,13 @@
             const rms = await res.json();
             const cont = document.getElementById('lista-rms');
             if(rms.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-500">No hay RMs registrados.</p>'; return; }
-            
             cont.innerHTML = rms.map(r => `
                 <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800 text-xs">
                     <div>
                         <span class="font-bold text-gray-300 block">${r.ejercicio}</span>
                         <span class="text-red-500 font-bold text-sm">${r.peso} KG</span>
                     </div>
-                    <button onclick="actualizarRm('${r.id}', '${r.ejercicio}')" class="bg-gray-800 hover:bg-red-600 border border-gray-700 px-3 py-1 font-bold rounded text-white transition text-[10px]">
-                        ACTUALIZAR
-                    </button>
+                    <button onclick="actualizarRm('${r.id}', '${r.ejercicio}')" class="bg-gray-800 hover:bg-red-600 border border-gray-700 px-3 py-1 font-bold rounded text-white transition text-[10px]">ACTUALIZAR</button>
                 </div>
             `).join('');
         }
@@ -348,12 +335,55 @@
             else alert('Credenciales inválidas.');
         };
 
+        // --- NUEVA LÓGICA DE REGISTRO CON BASE64 PARA FOTOS ---
         document.getElementById('form-reg').onsubmit = async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            if(formData.get('rol') === 'PROFESOR') formData.set('horarioClase', 'N/A');
-            const res = await fetch('/api/usuarios', { method: 'POST', body: formData });
-            if(res.ok) { const user = await res.json(); localStorage.setItem('ironbox_user', user.username); location.reload(); }
+            const form = e.target;
+            const btnSubmit = document.getElementById('btn-submit-reg');
+            btnSubmit.innerText = "CARGANDO...";
+            btnSubmit.disabled = true;
+
+            const fileInput = form.querySelector('input[name="foto"]');
+            
+            const ejecutarRegistro = async (fotoBase64) => {
+                const data = {
+                    username: form.username.value,
+                    password: form.password.value,
+                    nombre: form.nombre.value,
+                    apellido: form.apellido.value,
+                    edad: form.edad.value,
+                    rol: form.rol.value,
+                    horarioClase: form.rol.value === 'PROFESOR' ? 'N/A' : form.horarioClase.value,
+                    categoria: form.categoria.value,
+                    fotoUrl: fotoBase64
+                };
+
+                const res = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if(res.ok) { 
+                    const user = await res.json(); 
+                    localStorage.setItem('ironbox_user', user.username); 
+                    location.reload(); 
+                } else {
+                    alert('Error al crear la cuenta. Intenta con otro usuario.');
+                    btnSubmit.innerText = "CREAR CUENTA";
+                    btnSubmit.disabled = false;
+                }
+            };
+
+            // Si subió foto, la leemos y la convertimos a texto
+            if(fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.readAsDataURL(fileInput.files[0]);
+                reader.onload = () => ejecutarRegistro(reader.result);
+                reader.onerror = () => { alert("Error leyendo la foto"); ejecutarRegistro(null); };
+            } else {
+                ejecutarRegistro(null); // Si no sube foto, se manda nulo
+            }
         };
 
         async function loadProfile() {
