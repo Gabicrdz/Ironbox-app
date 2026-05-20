@@ -7,7 +7,6 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
-// Aumentamos el límite de JSON a 10mb para permitir recibir el texto de las fotos
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.static('public'));
 
@@ -28,7 +27,7 @@ app.post('/api/login', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Error en el servidor" }); }
 });
 
-// Registro de usuarios (SIN MULTER - Recibe Base64)
+// Registro de usuarios
 app.post('/api/usuarios', async (req, res) => {
     const { username, password, nombre, apellido, edad, horarioClase, rol, categoria, fotoUrl } = req.body;
     try {
@@ -45,6 +44,29 @@ app.post('/api/usuarios', async (req, res) => {
 app.get('/api/usuarios/:username', async (req, res) => {
     const user = await prisma.usuario.findUnique({ where: { username: req.params.username } });
     user ? res.json(user) : res.status(404).json({ error: "No encontrado" });
+});
+
+// --- NUEVO ENDPOINT: ACTUALIZAR FOTO Y NOMBRE DE PERFIL ---
+app.put('/api/usuarios/:username', async (req, res) => {
+    const { username } = req.params;
+    const { nombre, apellido, fotoUrl } = req.body;
+    try {
+        const datosActualizar = { nombre, apellido };
+        
+        // Si el usuario cargó una foto nueva, la actualizamos. Si no, conserva la anterior.
+        if (fotoUrl) {
+            datosActualizar.fotoUrl = fotoUrl;
+        }
+
+        const usuarioActualizado = await prisma.usuario.update({
+            where: { username },
+            data: datosActualizar
+        });
+        res.json(usuarioActualizado);
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ error: "No se pudo actualizar el perfil." });
+    }
 });
 
 // Historial personal del atleta
