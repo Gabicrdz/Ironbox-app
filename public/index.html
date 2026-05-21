@@ -77,7 +77,7 @@
         </div>
 
         <div id="sec-admin" class="hidden fade-in">
-            <h2 class="text-4xl font-bebas mb-4 uppercase text-center">Programar WOD</h2>
+            <h2 class="text-4xl font-bebas mb-4 uppercase text-center">Panel de Programación</h2>
             <form id="form-wod" class="space-y-4 glass-panel p-5 rounded-lg shadow-xl">
                 <div class="flex gap-2">
                     <div class="w-1/2">
@@ -102,7 +102,7 @@
                 </div>
 
                 <button type="button" onclick="agregarBloqueUI()" class="w-full border border-dashed border-gray-600 text-gray-400 hover:text-white hover:border-white p-2 rounded text-sm font-bold transition">+ AÑADIR OTRO BLOQUE</button>
-                <button class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4 shadow-lg shadow-red-900/50">GUARDAR WOD</button>
+                <button id="btn-submit-wod" class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4 shadow-lg">PUBLICAR NUEVO WOD</button>
             </form>
         </div>
 
@@ -147,14 +147,12 @@
                             <input type="text" id="edit-nombre" placeholder="Nombre" class="flex-1 p-2 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
                             <input type="text" id="edit-apellido" placeholder="Apellido" class="flex-1 p-2 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
                         </div>
-                        
                         <div class="bg-black border border-gray-700 p-2 rounded">
                             <label class="block font-bold mb-1 text-[10px] text-gray-500">NUEVA CATEGORÍA:</label>
                             <select id="edit-categoria" class="w-full bg-transparent text-white outline-none text-sm">
                                 <option value="PRINCIPIANTE">PRINCIPIANTE</option><option value="SCALED">SCALED</option><option value="RX">RX</option><option value="ADVANCED">ADVANCED</option>
                             </select>
                         </div>
-
                         <div class="bg-black border border-gray-700 p-3 rounded text-xs text-gray-400">
                             <label class="block font-bold mb-2">CAMBIAR FOTO (OPCIONAL):</label>
                             <input type="file" id="edit-foto" accept="image/*" class="w-full cursor-pointer">
@@ -234,11 +232,9 @@
         <button onclick="show('scores')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
             <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">TIEMPOS</span>
         </button>
-        
         <button onclick="show('ejercicios')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
             <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">VIDEOS</span>
         </button>
-
         <button id="nav-admin" class="hidden flex flex-col items-center text-red-500 hover:text-red-400 transition" onclick="show('admin')">
             <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">COACH</span>
         </button>
@@ -276,13 +272,12 @@
             const nombreCompleto = document.getElementById('view-nombre').innerText.split(' ');
             document.getElementById('edit-nombre').value = nombreCompleto[0] || '';
             document.getElementById('edit-apellido').value = nombreCompleto.slice(1).join(' ') || '';
-            document.getElementById('edit-categoria').value = document.getElementById('view-cat').innerText; // Precarga la categoría actual
+            document.getElementById('edit-categoria').value = document.getElementById('view-cat').innerText;
         }
         function cerrarPanelEditar() { document.getElementById('panel-editar-perfil').classList.add('hidden'); document.getElementById('edit-foto').value = ''; }
 
         document.getElementById('select-rol').addEventListener('change', e => { document.getElementById('container-horario').classList.toggle('hidden', e.target.value === 'PROFESOR'); });
 
-        // --- SISTEMA DE BLOQUES WOD ---
         function crearBloqueHTML(titulo = "", plan = "Planificación avanzada", tiempo = "", texto = "") {
             return `
                 <div class="bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative mt-2 shadow-inner">
@@ -305,20 +300,22 @@
             container.appendChild(div.firstElementChild);
         }
 
-        // --- FUNCIONALIDAD PARA EDITAR WODS EXISTENTES ---
         async function cargarWodParaEditar() {
             const fecha = document.getElementById('wod-fecha-input').value;
             const container = document.getElementById('contenedor-bloques');
+            const btnSubmit = document.getElementById('btn-submit-wod');
             
             try {
                 const res = await fetch(`/api/wods/date/${fecha}`);
                 const wod = await res.json();
 
                 if (!wod.vacio && wod.id) {
-                    // Cargar datos en el formulario
                     document.getElementById('wod-tipo').value = wod.tipo;
-                    container.innerHTML = ''; // Limpiar
+                    container.innerHTML = '';
                     
+                    btnSubmit.innerText = "ACTUALIZAR CAMBIOS (MODO EDICIÓN)";
+                    btnSubmit.className = "w-full bg-orange-600 hover:bg-orange-700 p-3 font-bebas text-2xl rounded transition mt-4 shadow-lg shadow-orange-900/50";
+
                     try {
                         const bloques = JSON.parse(wod.descripcion);
                         bloques.forEach(b => {
@@ -327,19 +324,21 @@
                             container.appendChild(div.firstElementChild);
                         });
                     } catch (e) {
-                        // Si era un WOD viejo sin formato de bloques
                         const div = document.createElement('div');
                         div.innerHTML = crearBloqueHTML("WOD", "Planificación avanzada", wod.goal, wod.descripcion);
                         container.appendChild(div.firstElementChild);
                     }
                 } else {
-                    // Reseteamos el formulario si el día está vacío
                     document.getElementById('wod-tipo').value = "";
                     container.innerHTML = crearBloqueHTML();
+                    
+                    btnSubmit.innerText = "PUBLICAR NUEVO WOD";
+                    btnSubmit.className = "w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4 shadow-lg shadow-red-900/50";
                 }
             } catch (error) { console.log(error); }
         }
 
+        // --- CORRECCIÓN BUG ZONA HORARIA ---
         async function getWod() {
             try {
                 const res = await fetch('/api/wods/today');
@@ -347,7 +346,8 @@
                 if(data.id) {
                     wodActualId = data.id;
                     const dateObj = new Date(data.fecha);
-                    const fechaFmt = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+                    // Forzamos el uso de UTC para ignorar la zona horaria del celular y mostrar siempre el día exacto guardado
+                    const fechaFmt = dateObj.toLocaleDateString('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
                     
                     document.getElementById('wod-fecha').innerText = fechaFmt;
                     document.getElementById('scores-fecha').innerText = fechaFmt;
@@ -428,7 +428,7 @@
                 goal: "" 
             };
             const res = await fetch('/api/wods', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-            if(res.ok) { alert("WOD Guardado correctamente."); location.reload(); } else { alert("Error al guardar."); }
+            if(res.ok) { alert("¡WOD guardado / actualizado con éxito!"); location.reload(); } else { alert("Error al guardar."); }
         };
 
         document.getElementById('form-score').onsubmit = async (e) => {
@@ -447,11 +447,10 @@
             if(res.ok) { document.getElementById('score-tiempo').value = ''; getScores(); }
         };
 
-        // --- LIBRERÍA DE EJERCICIOS ---
         document.getElementById('form-ejercicio').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
-            btn.innerText = "GUARDANDO..."; // Efecto visual
+            btn.innerText = "GUARDANDO...";
             
             const data = {
                 nombre: document.getElementById('ej-nombre').value,
@@ -459,12 +458,7 @@
             };
             
             try {
-                const res = await fetch('/api/ejercicios', { 
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify(data) 
-                });
-                
+                const res = await fetch('/api/ejercicios', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 if(res.ok) { 
                     document.getElementById('form-ejercicio').reset(); 
                     alert('¡Video añadido a la librería!');
@@ -475,7 +469,7 @@
             } catch (error) {
                 alert('Error de conexión.');
             } finally {
-                btn.innerText = "AÑADIR VIDEO"; // Vuelve a la normalidad
+                btn.innerText = "AÑADIR VIDEO";
             }
         };
 
@@ -495,6 +489,7 @@
             } catch (e) { console.error(e); }
         }
 
+        // --- CORRECCIÓN BUG ZONA HORARIA ---
         async function cargarHistorialPersonal() {
             const username = localStorage.getItem('ironbox_user');
             if(!username) return;
@@ -509,11 +504,15 @@
                     const bloqueEncontrado = bloquesWod.find(b => b.titulo === h.bloque);
                     if(bloqueEncontrado) { detallesBloque = `<p class="text-gray-400 text-[11px] mt-1 italic border-l-2 border-red-600 pl-2 line-clamp-2">${bloqueEncontrado.texto.replace(/\n/g, ', ')}</p>`; }
                 } catch(e) {}
+                
+                // Forzamos uso de UTC también en el historial
+                const fechaHistorial = new Date(h.wod.fecha).toLocaleDateString('es-ES', { timeZone: 'UTC' });
+                
                 return `
                 <div class="bg-black/40 p-3 rounded-lg border border-gray-800 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between font-bold text-xs mb-1">
                         <span class="text-red-500 tracking-wider">${h.wod.tipo} <span class="text-white ml-1">> ${h.bloque}</span></span>
-                        <span class="text-gray-500">${new Date(h.wod.fecha).toLocaleDateString('es-ES')}</span>
+                        <span class="text-gray-500">${fechaHistorial}</span>
                     </div>
                     <div class="flex justify-between items-end mt-2">
                         <div class="w-2/3">${detallesBloque}</div>
@@ -563,17 +562,11 @@
             const fileInput = document.getElementById('edit-foto');
             
             const enviarPeticionEdicion = async (fotoBase64) => {
-                const data = { 
-                    nombre: document.getElementById('edit-nombre').value, 
-                    apellido: document.getElementById('edit-apellido').value, 
-                    categoria: document.getElementById('edit-categoria').value, // ENVIAMOS LA NUEVA CATEGORÍA
-                    fotoUrl: fotoBase64 
-                };
+                const data = { nombre: document.getElementById('edit-nombre').value, apellido: document.getElementById('edit-apellido').value, categoria: document.getElementById('edit-categoria').value, fotoUrl: fotoBase64 };
                 const res = await fetch(`/api/usuarios/${username}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 if(res.ok) { alert('¡Perfil actualizado con éxito!'); cerrarPanelEditar(); loadProfile(); } 
                 else { alert('No se pudieron guardar los cambios.'); }
             };
-
             if(fileInput.files.length > 0) {
                 const reader = new FileReader(); reader.readAsDataURL(fileInput.files[0]); reader.onload = () => enviarPeticionEdicion(reader.result);
             } else { enviarPeticionEdicion(null); }
