@@ -33,9 +33,7 @@
         <h1 class="text-3xl font-bebas tracking-widest uppercase">IRON <span class="iron-red">BOX</span></h1>
         <div class="flex items-center gap-2">
             <div id="user-badge" class="hidden text-xs bg-gray-800 px-2 py-1 rounded border border-gray-700 font-bold"></div>
-            <button id="btn-logout" onclick="cerrarSesion()" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded transition shadow">
-                CERRAR SESIÓN
-            </button>
+            <button id="btn-logout" onclick="cerrarSesion()" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded transition shadow">CERRAR SESIÓN</button>
         </div>
     </header>
 
@@ -46,11 +44,7 @@
             <div class="glass-panel p-6 rounded-xl shadow-2xl">
                 <p id="wod-fecha" class="text-red-500 font-bold text-center mb-4 tracking-widest text-sm"></p>
                 <h3 id="wod-titulo-principal" class="iron-red font-bold text-4xl mb-4 tracking-wide text-center uppercase"></h3>
-                
-                <div id="wod-bloques-container" class="space-y-4 mb-6"></div>
-                
-                <hr class="border-gray-700 mb-4">
-                <p id="wod-goal-text" class="text-sm font-bold tracking-wide text-center"><span class="iron-red">TIEMPO / GOAL:</span> Cargando...</p>
+                <div id="wod-bloques-container" class="space-y-4 mb-4"></div>
             </div>
         </div>
 
@@ -60,6 +54,11 @@
 
             <form id="form-score" class="space-y-3 glass-panel p-4 rounded-lg mb-6 shadow-xl">
                 <h3 class="font-bold text-sm text-gray-300 mb-2">Cargar mi tiempo</h3>
+                
+                <select id="score-bloque" class="w-full p-3 bg-black border border-gray-700 rounded text-white outline-none mb-2 font-bold text-red-500">
+                    <option value="GENERAL">Cargando bloques...</option>
+                </select>
+
                 <div class="flex gap-2">
                     <select id="score-categoria" class="flex-1 p-3 bg-black border border-gray-700 rounded text-white outline-none">
                         <option value="RX">RX</option><option value="SCALED">Scaled</option><option value="PRINCIPIANTE">Principiante</option>
@@ -71,7 +70,7 @@
 
             <div class="glass-panel rounded-lg overflow-hidden shadow-xl">
                 <div class="grid grid-cols-4 bg-[#cc2929] text-white p-2 font-bebas text-xl tracking-wide">
-                    <div class="col-span-2 pl-2">ATLETA</div><div class="text-center">CAT</div><div class="text-right pr-2">TIEMPO</div>
+                    <div class="col-span-2 pl-2">ATLETA / BLOQUE</div><div class="text-center">CAT</div><div class="text-right pr-2">TIEMPO</div>
                 </div>
                 <div id="lista-scores" class="divide-y divide-gray-800">
                     <div class="p-4 text-center text-gray-500 text-sm">Cargando resultados...</div>
@@ -82,7 +81,6 @@
         <div id="sec-admin" class="hidden fade-in">
             <h2 class="text-4xl font-bebas mb-4 uppercase text-center">Programar WOD</h2>
             <form id="form-wod" class="space-y-4 glass-panel p-5 rounded-lg shadow-xl">
-                
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="text-xs text-gray-400 font-bold">FECHA DEL WOD</label>
@@ -96,7 +94,8 @@
 
                 <div id="contenedor-bloques" class="space-y-4 mt-4">
                     <div class="bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative">
-                        <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre del Bloque (Ej: Warm Up)" required>
+                        <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre (Ej: Warm Up)" required>
+                        <input type="text" class="bloque-tiempo w-full bg-black border border-gray-800 p-2 rounded text-white outline-none text-sm mb-2" placeholder="Tiempo del bloque (Ej: AMRAP 12 Min)">
                         <textarea class="bloque-texto w-full bg-black border border-gray-800 p-2 rounded text-white outline-none h-24 text-sm" placeholder="Lista de ejercicios..." required></textarea>
                     </div>
                 </div>
@@ -104,12 +103,6 @@
                 <button type="button" onclick="agregarBloqueUI()" class="w-full border border-dashed border-gray-600 text-gray-400 hover:text-white hover:border-white p-2 rounded text-sm font-bold transition">
                     + AÑADIR OTRO BLOQUE
                 </button>
-
-                <div class="mt-4">
-                    <label class="text-xs text-gray-400 font-bold">GOAL / TIEMPO ESTIMADO</label>
-                    <input type="text" id="wod-goal" placeholder="Ej: Time Cap 15 Min" class="w-full p-3 bg-black border border-gray-700 rounded text-white outline-none" required>
-                </div>
-
                 <button class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4">GUARDAR WOD</button>
             </form>
         </div>
@@ -161,7 +154,7 @@
 
                 <div class="glass-panel p-4 rounded-xl shadow-xl">
                     <h3 class="font-bebas text-3xl mb-3 uppercase tracking-wide">Mis Entrenamientos</h3>
-                    <div class="space-y-2 max-h-48 overflow-y-auto text-sm" id="lista-historial"></div>
+                    <div class="space-y-3 max-h-64 overflow-y-auto text-sm" id="lista-historial"></div>
                 </div>
             </div>
 
@@ -187,10 +180,7 @@
                             <input type="number" name="edad" placeholder="Edad" class="w-1/3 p-3 bg-black border border-gray-700 rounded outline-none" required>
                             <div id="container-horario" class="w-2/3">
                                 <select name="horarioClase" class="w-full p-3 bg-black border border-gray-700 rounded text-white">
-                                    <option value="14:00">14:00hs</option><option value="15:00">15:00hs</option><option value="16:00">16:00hs</option>
-                                    <option value="17:00">17:00hs</option><option value="18:00">18:00hs</option><option value="19:00">19:00hs</option>
-                                    <option value="20:00">20:00hs</option><option value="21:00">21:00hs</option><option value="22:00">22:00hs</option>
-                                    <option value="23:00">23:00hs</option>
+                                    <option value="14:00">14:00hs</option><option value="15:00">15:00hs</option><option value="16:00">16:00hs</option><option value="17:00">17:00hs</option><option value="18:00">18:00hs</option><option value="19:00">19:00hs</option><option value="20:00">20:00hs</option><option value="21:00">21:00hs</option><option value="22:00">22:00hs</option><option value="23:00">23:00hs</option>
                                 </select>
                             </div>
                         </div>
@@ -239,8 +229,8 @@
     <script>
         let wodActualId = null;
         let isLoginMode = false;
+        let wodBloquesDisponibles = [];
 
-        // --- Cargar fecha actual por defecto en el panel del coach ---
         document.getElementById('wod-fecha-input').value = new Date().toISOString().split('T')[0];
 
         function show(sec) {
@@ -251,38 +241,30 @@
         }
 
         function cerrarSesion() { localStorage.clear(); location.reload(); }
-
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
-            const btn = document.getElementById('btn-toggle-login');
             document.getElementById('profile-reg').classList.toggle('hidden', isLoginMode);
             document.getElementById('profile-login').classList.toggle('hidden', !isLoginMode);
-            btn.innerText = isLoginMode ? "CREAR CUENTA NUEVA" : "INICIAR SESIÓN";
+            document.getElementById('btn-toggle-login').innerText = isLoginMode ? "CREAR CUENTA NUEVA" : "INICIAR SESIÓN";
         }
-
         function abrirPanelEditar() {
             document.getElementById('panel-editar-perfil').classList.remove('hidden');
             const nombreCompleto = document.getElementById('view-nombre').innerText.split(' ');
             document.getElementById('edit-nombre').value = nombreCompleto[0] || '';
             document.getElementById('edit-apellido').value = nombreCompleto.slice(1).join(' ') || '';
         }
-        function cerrarPanelEditar() {
-            document.getElementById('panel-editar-perfil').classList.add('hidden');
-            document.getElementById('edit-foto').value = '';
-        }
+        function cerrarPanelEditar() { document.getElementById('panel-editar-perfil').classList.add('hidden'); document.getElementById('edit-foto').value = ''; }
 
-        document.getElementById('select-rol').addEventListener('change', e => {
-            document.getElementById('container-horario').classList.toggle('hidden', e.target.value === 'PROFESOR');
-        });
+        document.getElementById('select-rol').addEventListener('change', e => { document.getElementById('container-horario').classList.toggle('hidden', e.target.value === 'PROFESOR'); });
 
-        // --- DINÁMICA DE BLOQUES (COACH) ---
         function agregarBloqueUI() {
             const container = document.getElementById('contenedor-bloques');
             const div = document.createElement('div');
             div.className = 'bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative mt-2';
             div.innerHTML = `
                 <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 font-bold text-xs">X</button>
-                <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre del Bloque" required>
+                <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre (Ej: Warm Up)" required>
+                <input type="text" class="bloque-tiempo w-full bg-black border border-gray-800 p-2 rounded text-white outline-none text-sm mb-2" placeholder="Tiempo del bloque (Ej: AMRAP 12 Min)">
                 <textarea class="bloque-texto w-full bg-black border border-gray-800 p-2 rounded text-white outline-none h-24 text-sm" placeholder="Lista de ejercicios..." required></textarea>
             `;
             container.appendChild(div);
@@ -295,37 +277,36 @@
                 if(data.id) {
                     wodActualId = data.id;
                     const dateObj = new Date(data.fecha);
-                    const fechaFormateada = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+                    const fechaFmt = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
                     
-                    document.getElementById('wod-fecha').innerText = fechaFormateada;
-                    document.getElementById('scores-fecha').innerText = fechaFormateada;
+                    document.getElementById('wod-fecha').innerText = fechaFmt;
+                    document.getElementById('scores-fecha').innerText = fechaFmt;
                     document.getElementById('wod-titulo-principal').innerText = data.tipo;
-                    document.getElementById('wod-goal-text').innerText = data.goal;
 
                     const container = document.getElementById('wod-bloques-container');
-                    container.innerHTML = ''; // Limpiar anterior
+                    const selectBloque = document.getElementById('score-bloque');
+                    container.innerHTML = ''; selectBloque.innerHTML = '';
 
                     try {
-                        // Intentamos desempaquetar el JSON de bloques
-                        const bloques = JSON.parse(data.descripcion);
-                        bloques.forEach(b => {
+                        wodBloquesDisponibles = JSON.parse(data.descripcion);
+                        wodBloquesDisponibles.forEach(b => {
+                            // Renderizar en el WOD
                             const listaEjercicios = b.texto.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
+                            const htmlTiempo = b.tiempo ? `<p class="text-xs text-gray-500 font-bold mt-2 tracking-widest uppercase">TIEMPO: ${b.tiempo}</p>` : '';
                             container.innerHTML += `
                                 <div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner">
                                     <h4 class="text-red-500 font-bebas text-2xl tracking-widest mb-2 border-b border-gray-800 pb-1">${b.titulo}</h4>
                                     <ul class="space-y-1">${listaEjercicios}</ul>
+                                    ${htmlTiempo}
                                 </div>
                             `;
+                            // Poblar el menú desplegable de Tiempos
+                            selectBloque.innerHTML += `<option value="${b.titulo}">${b.titulo}</option>`;
                         });
                     } catch (e) {
-                        // Si es un WOD viejo (texto simple), lo mostramos en un solo bloque genérico
+                        selectBloque.innerHTML = `<option value="GENERAL">GENERAL</option>`;
                         const listaEjercicios = data.descripcion.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
-                        container.innerHTML = `
-                            <div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner">
-                                <h4 class="text-red-500 font-bebas text-2xl tracking-widest mb-2 border-b border-gray-800 pb-1">WOD</h4>
-                                <ul class="space-y-1">${listaEjercicios}</ul>
-                            </div>
-                        `;
+                        container.innerHTML = `<div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner"><h4 class="text-red-500 font-bebas text-2xl tracking-widest mb-2 border-b border-gray-800 pb-1">WOD</h4><ul class="space-y-1">${listaEjercicios}</ul></div>`;
                     }
                 } else {
                     document.getElementById('wod-fecha').innerText = "SIN WOD PROGRAMADO";
@@ -343,10 +324,10 @@
                     return;
                 }
                 contenedor.innerHTML = data.scores.map(score => `
-                    <div class="grid grid-cols-4 p-3 items-center hover:bg-gray-800/50 transition">
+                    <div class="grid grid-cols-4 p-3 items-center hover:bg-gray-800/50 transition border-b border-gray-800/50">
                         <div class="col-span-2 pl-2">
                             <span class="text-white font-bold block">${score.usuario.nombre} ${score.usuario.apellido}</span>
-                            <span class="text-xs text-gray-400">Clase: ${score.usuario.horarioClase}hs</span>
+                            <span class="text-xs text-red-500 font-bold">${score.bloque}</span> <span class="text-xs text-gray-500 ml-1">| ${score.usuario.horarioClase}hs</span>
                         </div>
                         <div class="text-center text-gray-300 font-bold text-sm">${score.categoria}</div>
                         <div class="text-right pr-2 text-white font-bold text-lg">${score.tiempoPuntaje}</div>
@@ -355,15 +336,13 @@
             } catch (e) {}
         }
 
-        // GUARDAR WOD (Empaquetando en JSON)
         document.getElementById('form-wod').onsubmit = async (e) => {
             e.preventDefault();
-            
-            // Recolectamos todos los bloques dibujados en pantalla
             const arrayBloques = [];
             document.querySelectorAll('.bloque-wod').forEach(div => {
                 arrayBloques.push({
                     titulo: div.querySelector('.bloque-titulo').value,
+                    tiempo: div.querySelector('.bloque-tiempo').value,
                     texto: div.querySelector('.bloque-texto').value
                 });
             });
@@ -371,25 +350,67 @@
             const data = { 
                 fecha: document.getElementById('wod-fecha-input').value,
                 tipo: document.getElementById('wod-tipo').value, 
-                descripcion: JSON.stringify(arrayBloques), // Convertimos el array a texto para que Prisma lo guarde
-                goal: document.getElementById('wod-goal').value 
+                descripcion: JSON.stringify(arrayBloques),
+                goal: "" // Ya no usamos el general, pero se manda vacío
             };
 
-            const res = await fetch('/api/wods', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(data) 
-            });
-            
-            if(res.ok) {
-                alert("WOD Guardado correctamente.");
-                location.reload();
-            } else {
-                alert("Error al guardar el WOD.");
-            }
+            const res = await fetch('/api/wods', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if(res.ok) { alert("WOD Guardado correctamente."); location.reload(); } else { alert("Error al guardar."); }
         };
 
-        // RMs y Tiempos (Se mantienen iguales)
+        document.getElementById('form-score').onsubmit = async (e) => {
+            e.preventDefault();
+            if(!wodActualId) return alert('No hay un WOD activo.');
+            const usernameLogueado = localStorage.getItem('ironbox_user');
+            if(!usernameLogueado) return alert('Inicia sesión primero.');
+            const data = { 
+                username: usernameLogueado, 
+                wodId: wodActualId, 
+                bloque: document.getElementById('score-bloque').value,
+                categoria: document.getElementById('score-categoria').value, 
+                tiempoPuntaje: document.getElementById('score-tiempo').value 
+            };
+            const res = await fetch('/api/scores', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if(res.ok) { document.getElementById('score-tiempo').value = ''; getScores(); }
+        };
+
+        // --- RENDERIZADO DEL HISTORIAL MEJORADO ---
+        async function cargarHistorialPersonal() {
+            const username = localStorage.getItem('ironbox_user');
+            if(!username) return;
+            const res = await fetch(`/api/usuarios/${username}/historial`);
+            const hist = await res.json();
+            const cont = document.getElementById('lista-historial');
+            if(hist.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-500">No registraste entrenamientos previos.</p>'; return; }
+            
+            cont.innerHTML = hist.map(h => {
+                let detallesBloque = "";
+                try {
+                    const bloquesWod = JSON.parse(h.wod.descripcion);
+                    const bloqueEncontrado = bloquesWod.find(b => b.titulo === h.bloque);
+                    if(bloqueEncontrado) {
+                        detallesBloque = `<p class="text-gray-400 text-[11px] mt-1 italic border-l-2 border-red-600 pl-2 line-clamp-2">${bloqueEncontrado.texto.replace(/\n/g, ', ')}</p>`;
+                    }
+                } catch(e) { detallesBloque = ""; }
+
+                return `
+                <div class="bg-black/40 p-3 rounded-lg border border-gray-800 shadow-sm relative overflow-hidden">
+                    <div class="flex justify-between font-bold text-xs mb-1">
+                        <span class="text-red-500 tracking-wider">${h.wod.tipo} <span class="text-white ml-1">> ${h.bloque}</span></span>
+                        <span class="text-gray-500">${new Date(h.wod.fecha).toLocaleDateString('es-ES')}</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div class="w-2/3">${detallesBloque}</div>
+                        <div class="w-1/3 text-right">
+                            <span class="block text-white font-bebas text-2xl">${h.tiempoPuntaje}</span>
+                            <span class="text-[10px] bg-red-900/40 text-red-300 px-2 py-0.5 rounded border border-red-900">${h.categoria}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- RESTO DEL CÓDIGO (RMs, Logins, etc. sin cambios) ---
         document.getElementById('form-rm').onsubmit = async (e) => {
             e.preventDefault();
             const username = localStorage.getItem('ironbox_user');
@@ -423,55 +444,20 @@
             `).join('');
         }
 
-        async function cargarHistorialPersonal() {
-            const username = localStorage.getItem('ironbox_user');
-            if(!username) return;
-            const res = await fetch(`/api/usuarios/${username}/historial`);
-            const hist = await res.json();
-            const cont = document.getElementById('lista-historial');
-            if(hist.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-500">No registraste entrenamientos previos.</p>'; return; }
-            cont.innerHTML = hist.map(h => `
-                <div class="bg-black/40 p-3 rounded border border-gray-800 space-y-1">
-                    <div class="flex justify-between font-bold text-xs">
-                        <span class="text-red-500">${h.wod.tipo}</span>
-                        <span class="text-gray-400">${new Date(h.createdAt).toLocaleDateString('es-ES')}</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-300 text-xs truncate max-w-[200px]">Tiempo: ${h.tiempoPuntaje}</span>
-                        <span class="font-bold text-white bg-red-600/20 px-2 py-0.5 rounded border border-red-900 text-xs">${h.categoria}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         document.getElementById('form-edit-perfil').onsubmit = async (e) => {
             e.preventDefault();
             const username = localStorage.getItem('ironbox_user');
             if(!username) return;
             const fileInput = document.getElementById('edit-foto');
-            
             const enviarPeticionEdicion = async (fotoBase64) => {
                 const data = { nombre: document.getElementById('edit-nombre').value, apellido: document.getElementById('edit-apellido').value, fotoUrl: fotoBase64 };
                 const res = await fetch(`/api/usuarios/${username}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 if(res.ok) { alert('¡Perfil actualizado con éxito!'); cerrarPanelEditar(); loadProfile(); } 
                 else { alert('No se pudieron guardar los cambios.'); }
             };
-
             if(fileInput.files.length > 0) {
-                const reader = new FileReader();
-                reader.readAsDataURL(fileInput.files[0]);
-                reader.onload = () => enviarPeticionEdicion(reader.result);
+                const reader = new FileReader(); reader.readAsDataURL(fileInput.files[0]); reader.onload = () => enviarPeticionEdicion(reader.result);
             } else { enviarPeticionEdicion(null); }
-        };
-
-        document.getElementById('form-score').onsubmit = async (e) => {
-            e.preventDefault();
-            if(!wodActualId) return alert('No hay un WOD activo.');
-            const usernameLogueado = localStorage.getItem('ironbox_user');
-            if(!usernameLogueado) return alert('Inicia sesión primero.');
-            const data = { username: usernameLogueado, wodId: wodActualId, categoria: document.getElementById('score-categoria').value, tiempoPuntaje: document.getElementById('score-tiempo').value };
-            const res = await fetch('/api/scores', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-            if(res.ok) { document.getElementById('score-tiempo').value = ''; getScores(); }
         };
 
         document.getElementById('form-login').onsubmit = async (e) => {
@@ -486,7 +472,6 @@
             e.preventDefault();
             const form = e.target;
             const fileInput = form.querySelector('input[name="foto"]');
-            
             const ejecutarRegistro = async (fotoBase64) => {
                 const data = {
                     username: form.username.value, password: form.password.value, nombre: form.nombre.value, apellido: form.apellido.value,
@@ -496,11 +481,8 @@
                 const res = await fetch('/api/usuarios', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 if(res.ok) { const user = await res.json(); localStorage.setItem('ironbox_user', user.username); location.reload(); }
             };
-
             if(fileInput.files.length > 0) {
-                const reader = new FileReader();
-                reader.readAsDataURL(fileInput.files[0]);
-                reader.onload = () => ejecutarRegistro(reader.result);
+                const reader = new FileReader(); reader.readAsDataURL(fileInput.files[0]); reader.onload = () => ejecutarRegistro(reader.result);
             } else { ejecutarRegistro(null); }
         };
 

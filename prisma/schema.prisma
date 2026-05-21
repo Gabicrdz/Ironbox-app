@@ -27,19 +27,20 @@ model Wod {
   fecha       DateTime @unique @db.Date
   tipo        String
   descripcion String   @db.Text
-  goal        String   @db.Text
+  goal        String   @db.Text // Lo dejamos por si el coach quiere poner un goal general al día
   scores      Score[]
 }
 
 model Score {
-  id            String  @id @default(uuid())
+  id            String   @id @default(uuid())
   usuarioId     String
   wodId         String
   tiempoPuntaje String
   categoria     String
+  bloque        String   @default("GENERAL") // <-- NUEVO CAMPO PARA SABER DE QUÉ BLOQUE ES EL TIEMPO
   createdAt     DateTime @default(now())
-  usuario       Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  wod           Wod     @relation(fields: [wodId], references: [id], onDelete: Cascade)
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  wod           Wod      @relation(fields: [wodId], references: [id], onDelete: Cascade)
 }
 
 model Rm {
