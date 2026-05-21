@@ -450,12 +450,33 @@
         // --- LIBRERÍA DE EJERCICIOS ---
         document.getElementById('form-ejercicio').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "GUARDANDO..."; // Efecto visual
+            
             const data = {
                 nombre: document.getElementById('ej-nombre').value,
                 link: document.getElementById('ej-link').value
             };
-            const res = await fetch('/api/ejercicios', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-            if(res.ok) { document.getElementById('form-ejercicio').reset(); cargarEjercicios(); }
+            
+            try {
+                const res = await fetch('/api/ejercicios', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify(data) 
+                });
+                
+                if(res.ok) { 
+                    document.getElementById('form-ejercicio').reset(); 
+                    alert('¡Video añadido a la librería!');
+                    cargarEjercicios(); 
+                } else {
+                    alert('Error del servidor: Probablemente falta sincronizar la Base de Datos.');
+                }
+            } catch (error) {
+                alert('Error de conexión.');
+            } finally {
+                btn.innerText = "AÑADIR VIDEO"; // Vuelve a la normalidad
+            }
         };
 
         async function cargarEjercicios() {
