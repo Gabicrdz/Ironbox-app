@@ -54,14 +54,12 @@
 
             <form id="form-score" class="space-y-3 glass-panel p-4 rounded-lg mb-6 shadow-xl">
                 <h3 class="font-bold text-sm text-gray-300 mb-2">Cargar mi tiempo</h3>
-                
                 <select id="score-bloque" class="w-full p-3 bg-black border border-gray-700 rounded text-white outline-none mb-2 font-bold text-red-500">
                     <option value="GENERAL">Cargando bloques...</option>
                 </select>
-
                 <div class="flex gap-2">
                     <select id="score-categoria" class="flex-1 p-3 bg-black border border-gray-700 rounded text-white outline-none">
-                        <option value="RX">RX</option><option value="SCALED">Scaled</option><option value="PRINCIPIANTE">Principiante</option>
+                        <option value="PRINCIPIANTE">Principiante</option><option value="SCALED">Scaled</option><option value="RX">RX</option><option value="ADVANCED">Advanced</option>
                     </select>
                     <input type="text" id="score-tiempo" placeholder="Tiempo (ej: 12:45)" class="flex-1 p-3 bg-black border border-gray-700 rounded text-white outline-none" required>
                 </div>
@@ -84,7 +82,7 @@
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="text-xs text-gray-400 font-bold">FECHA DEL WOD</label>
-                        <input type="date" id="wod-fecha-input" class="w-full p-3 bg-black border border-gray-700 rounded text-white outline-none" required>
+                        <input type="date" id="wod-fecha-input" onchange="cargarWodParaEditar()" class="w-full p-3 bg-black border border-gray-700 rounded text-white outline-none" required>
                     </div>
                     <div class="w-1/2">
                         <label class="text-xs text-gray-400 font-bold">TÍTULO DEL DÍA</label>
@@ -93,18 +91,38 @@
                 </div>
 
                 <div id="contenedor-bloques" class="space-y-4 mt-4">
-                    <div class="bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative">
+                    <div class="bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative shadow-inner">
                         <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre (Ej: Warm Up)" required>
+                        <select class="bloque-planificacion w-full bg-black border border-gray-800 p-2 rounded text-gray-300 outline-none text-sm mb-2">
+                            <option value="Planificación avanzada">Planificación avanzada</option><option value="Planificación adaptada">Planificación adaptada</option>
+                        </select>
                         <input type="text" class="bloque-tiempo w-full bg-black border border-gray-800 p-2 rounded text-white outline-none text-sm mb-2" placeholder="Tiempo del bloque (Ej: AMRAP 12 Min)">
                         <textarea class="bloque-texto w-full bg-black border border-gray-800 p-2 rounded text-white outline-none h-24 text-sm" placeholder="Lista de ejercicios..." required></textarea>
                     </div>
                 </div>
 
-                <button type="button" onclick="agregarBloqueUI()" class="w-full border border-dashed border-gray-600 text-gray-400 hover:text-white hover:border-white p-2 rounded text-sm font-bold transition">
-                    + AÑADIR OTRO BLOQUE
-                </button>
-                <button class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4">GUARDAR WOD</button>
+                <button type="button" onclick="agregarBloqueUI()" class="w-full border border-dashed border-gray-600 text-gray-400 hover:text-white hover:border-white p-2 rounded text-sm font-bold transition">+ AÑADIR OTRO BLOQUE</button>
+                <button class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded transition mt-4 shadow-lg shadow-red-900/50">GUARDAR WOD</button>
             </form>
+        </div>
+
+        <div id="sec-ejercicios" class="hidden fade-in">
+            <h2 class="text-5xl font-bebas text-center uppercase tracking-wide mt-2 mb-6">Librería de Ejercicios</h2>
+            
+            <form id="form-ejercicio" class="space-y-3 glass-panel p-4 rounded-lg mb-6 shadow-xl">
+                <h3 class="font-bold text-sm text-gray-300 mb-2">Aportar un ejercicio</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="ej-nombre" placeholder="Nombre del Ejercicio" class="w-1/2 p-3 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
+                    <input type="url" id="ej-link" placeholder="Link al Video (YouTube, Instagram...)" class="w-1/2 p-3 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
+                </div>
+                <button type="submit" class="w-full bg-gray-800 border border-gray-700 hover:bg-red-600 p-2 mt-2 font-bebas text-2xl rounded transition">AÑADIR VIDEO</button>
+            </form>
+
+            <div class="glass-panel p-4 rounded-xl shadow-xl">
+                <div class="grid grid-cols-1 gap-2" id="lista-ejercicios">
+                    <div class="text-center text-gray-500 text-sm py-4">Cargando ejercicios...</div>
+                </div>
+            </div>
         </div>
 
         <div id="sec-perfil" class="hidden">
@@ -129,6 +147,14 @@
                             <input type="text" id="edit-nombre" placeholder="Nombre" class="flex-1 p-2 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
                             <input type="text" id="edit-apellido" placeholder="Apellido" class="flex-1 p-2 bg-black border border-gray-700 rounded text-white outline-none text-sm" required>
                         </div>
+                        
+                        <div class="bg-black border border-gray-700 p-2 rounded">
+                            <label class="block font-bold mb-1 text-[10px] text-gray-500">NUEVA CATEGORÍA:</label>
+                            <select id="edit-categoria" class="w-full bg-transparent text-white outline-none text-sm">
+                                <option value="PRINCIPIANTE">PRINCIPIANTE</option><option value="SCALED">SCALED</option><option value="RX">RX</option><option value="ADVANCED">ADVANCED</option>
+                            </select>
+                        </div>
+
                         <div class="bg-black border border-gray-700 p-3 rounded text-xs text-gray-400">
                             <label class="block font-bold mb-2">CAMBIAR FOTO (OPCIONAL):</label>
                             <input type="file" id="edit-foto" accept="image/*" class="w-full cursor-pointer">
@@ -162,19 +188,14 @@
                 <div class="flex justify-end mb-2">
                     <button id="btn-toggle-login" onclick="toggleAuthMode()" class="border border-red-600 text-red-500 font-bold px-4 py-2 rounded text-xs tracking-wider transition">INICIAR SESIÓN</button>
                 </div>
-
                 <div id="profile-reg">
                     <h2 class="text-4xl font-bebas mb-4 uppercase text-center">Registrarse</h2>
                     <form id="form-reg" class="space-y-4 glass-panel p-5 rounded-lg shadow-xl">
                         <input type="text" name="username" placeholder="Usuario" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
                         <input type="password" name="password" placeholder="Contraseña" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
-                        <div class="flex gap-3">
-                            <input type="text" name="nombre" placeholder="Nombre" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
-                            <input type="text" name="apellido" placeholder="Apellido" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
-                        </div>
+                        <div class="flex gap-3"><input type="text" name="nombre" placeholder="Nombre" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required><input type="text" name="apellido" placeholder="Apellido" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required></div>
                         <select name="rol" id="select-rol" class="w-full p-3 bg-red-900/30 border border-red-800 rounded font-bold outline-none text-white">
-                            <option value="ATLETA">SOY ATLETA</option>
-                            <option value="PROFESOR">SOY PROFESOR</option>
+                            <option value="ATLETA">SOY ATLETA</option><option value="PROFESOR">SOY PROFESOR</option>
                         </select>
                         <div class="flex gap-3">
                             <input type="number" name="edad" placeholder="Edad" class="w-1/3 p-3 bg-black border border-gray-700 rounded outline-none" required>
@@ -185,7 +206,7 @@
                             </div>
                         </div>
                         <select name="categoria" class="w-full p-3 bg-black border border-gray-700 rounded text-white">
-                            <option value="PRINCIPIANTE">PRINCIPIANTE</option><option value="SCALED">SCALED</option><option value="RX">RX</option>
+                            <option value="PRINCIPIANTE">PRINCIPIANTE</option><option value="SCALED">SCALED</option><option value="RX">RX</option><option value="ADVANCED">ADVANCED</option>
                         </select>
                         <div class="bg-black border border-gray-700 p-3 rounded text-xs text-gray-400">
                             <label class="block font-bold mb-2">FOTO DE PERFIL:</label>
@@ -194,7 +215,6 @@
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 p-3 font-bebas text-2xl rounded mt-2 transition" id="btn-submit-reg">CREAR CUENTA</button>
                     </form>
                 </div>
-
                 <div id="profile-login" class="hidden">
                     <h2 class="text-4xl font-bebas mb-4 uppercase text-center mt-6">Iniciar Sesión</h2>
                     <form id="form-login" class="space-y-4 glass-panel p-5 rounded-lg shadow-xl">
@@ -209,20 +229,21 @@
 
     <nav class="fixed bottom-0 w-full glass-panel border-t border-gray-800 flex justify-around p-3 pb-5 z-50">
         <button onclick="show('wod')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
-            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            <span class="text-xs font-bold tracking-widest">WOD</span>
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">WOD</span>
         </button>
         <button onclick="show('scores')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
-            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            <span class="text-xs font-bold tracking-widest">TIEMPOS</span>
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">TIEMPOS</span>
         </button>
+        
+        <button onclick="show('ejercicios')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">VIDEOS</span>
+        </button>
+
         <button id="nav-admin" class="hidden flex flex-col items-center text-red-500 hover:text-red-400 transition" onclick="show('admin')">
-            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            <span class="text-xs font-bold tracking-widest">COACH</span>
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">COACH</span>
         </button>
         <button onclick="show('perfil')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
-            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <span class="text-xs font-bold tracking-widest">PERFIL</span>
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span class="text-[10px] font-bold tracking-widest mt-1">PERFIL</span>
         </button>
     </nav>
 
@@ -234,10 +255,12 @@
         document.getElementById('wod-fecha-input').value = new Date().toISOString().split('T')[0];
 
         function show(sec) {
-            ['sec-wod', 'sec-scores', 'sec-admin', 'sec-perfil'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['sec-wod', 'sec-scores', 'sec-ejercicios', 'sec-admin', 'sec-perfil'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('sec-' + sec).classList.remove('hidden');
             if(sec === 'scores') getScores();
+            if(sec === 'ejercicios') cargarEjercicios();
             if(sec === 'perfil') { cerrarPanelEditar(); cargarRms(); cargarHistorialPersonal(); }
+            if(sec === 'admin') cargarWodParaEditar();
         }
 
         function cerrarSesion() { localStorage.clear(); location.reload(); }
@@ -247,27 +270,74 @@
             document.getElementById('profile-login').classList.toggle('hidden', !isLoginMode);
             document.getElementById('btn-toggle-login').innerText = isLoginMode ? "CREAR CUENTA NUEVA" : "INICIAR SESIÓN";
         }
+        
         function abrirPanelEditar() {
             document.getElementById('panel-editar-perfil').classList.remove('hidden');
             const nombreCompleto = document.getElementById('view-nombre').innerText.split(' ');
             document.getElementById('edit-nombre').value = nombreCompleto[0] || '';
             document.getElementById('edit-apellido').value = nombreCompleto.slice(1).join(' ') || '';
+            document.getElementById('edit-categoria').value = document.getElementById('view-cat').innerText; // Precarga la categoría actual
         }
         function cerrarPanelEditar() { document.getElementById('panel-editar-perfil').classList.add('hidden'); document.getElementById('edit-foto').value = ''; }
 
         document.getElementById('select-rol').addEventListener('change', e => { document.getElementById('container-horario').classList.toggle('hidden', e.target.value === 'PROFESOR'); });
 
+        // --- SISTEMA DE BLOQUES WOD ---
+        function crearBloqueHTML(titulo = "", plan = "Planificación avanzada", tiempo = "", texto = "") {
+            return `
+                <div class="bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative mt-2 shadow-inner">
+                    <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 font-bold text-xs">X</button>
+                    <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre (Ej: Warm Up)" value="${titulo}" required>
+                    <select class="bloque-planificacion w-full bg-black border border-gray-800 p-2 rounded text-gray-300 outline-none text-sm mb-2">
+                        <option value="Planificación avanzada" ${plan === 'Planificación avanzada' ? 'selected' : ''}>Planificación avanzada</option>
+                        <option value="Planificación adaptada" ${plan === 'Planificación adaptada' ? 'selected' : ''}>Planificación adaptada</option>
+                    </select>
+                    <input type="text" class="bloque-tiempo w-full bg-black border border-gray-800 p-2 rounded text-white outline-none text-sm mb-2" placeholder="Tiempo del bloque (Ej: AMRAP 12 Min)" value="${tiempo}">
+                    <textarea class="bloque-texto w-full bg-black border border-gray-800 p-2 rounded text-white outline-none h-24 text-sm" placeholder="Lista de ejercicios..." required>${texto}</textarea>
+                </div>
+            `;
+        }
+
         function agregarBloqueUI() {
             const container = document.getElementById('contenedor-bloques');
             const div = document.createElement('div');
-            div.className = 'bloque-wod bg-black/50 p-3 border border-gray-700 rounded relative mt-2';
-            div.innerHTML = `
-                <button type="button" onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 font-bold text-xs">X</button>
-                <input type="text" class="bloque-titulo w-full bg-transparent text-red-500 font-bold mb-2 outline-none text-xl font-bebas tracking-wide" placeholder="Nombre (Ej: Warm Up)" required>
-                <input type="text" class="bloque-tiempo w-full bg-black border border-gray-800 p-2 rounded text-white outline-none text-sm mb-2" placeholder="Tiempo del bloque (Ej: AMRAP 12 Min)">
-                <textarea class="bloque-texto w-full bg-black border border-gray-800 p-2 rounded text-white outline-none h-24 text-sm" placeholder="Lista de ejercicios..." required></textarea>
-            `;
-            container.appendChild(div);
+            div.innerHTML = crearBloqueHTML();
+            container.appendChild(div.firstElementChild);
+        }
+
+        // --- FUNCIONALIDAD PARA EDITAR WODS EXISTENTES ---
+        async function cargarWodParaEditar() {
+            const fecha = document.getElementById('wod-fecha-input').value;
+            const container = document.getElementById('contenedor-bloques');
+            
+            try {
+                const res = await fetch(`/api/wods/date/${fecha}`);
+                const wod = await res.json();
+
+                if (!wod.vacio && wod.id) {
+                    // Cargar datos en el formulario
+                    document.getElementById('wod-tipo').value = wod.tipo;
+                    container.innerHTML = ''; // Limpiar
+                    
+                    try {
+                        const bloques = JSON.parse(wod.descripcion);
+                        bloques.forEach(b => {
+                            const div = document.createElement('div');
+                            div.innerHTML = crearBloqueHTML(b.titulo, b.planificacion, b.tiempo, b.texto);
+                            container.appendChild(div.firstElementChild);
+                        });
+                    } catch (e) {
+                        // Si era un WOD viejo sin formato de bloques
+                        const div = document.createElement('div');
+                        div.innerHTML = crearBloqueHTML("WOD", "Planificación avanzada", wod.goal, wod.descripcion);
+                        container.appendChild(div.firstElementChild);
+                    }
+                } else {
+                    // Reseteamos el formulario si el día está vacío
+                    document.getElementById('wod-tipo').value = "";
+                    container.innerHTML = crearBloqueHTML();
+                }
+            } catch (error) { console.log(error); }
         }
 
         async function getWod() {
@@ -290,17 +360,21 @@
                     try {
                         wodBloquesDisponibles = JSON.parse(data.descripcion);
                         wodBloquesDisponibles.forEach(b => {
-                            // Renderizar en el WOD
                             const listaEjercicios = b.texto.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
                             const htmlTiempo = b.tiempo ? `<p class="text-xs text-gray-500 font-bold mt-2 tracking-widest uppercase">TIEMPO: ${b.tiempo}</p>` : '';
+                            const colorPlan = b.planificacion === "Planificación avanzada" ? "text-red-400 border-red-900/50" : "text-gray-400 border-gray-600";
+                            const htmlPlanificacion = b.planificacion ? `<span class="text-[10px] bg-black/50 ${colorPlan} px-2 py-0.5 rounded border uppercase tracking-widest">${b.planificacion}</span>` : '';
+
                             container.innerHTML += `
                                 <div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner">
-                                    <h4 class="text-red-500 font-bebas text-2xl tracking-widest mb-2 border-b border-gray-800 pb-1">${b.titulo}</h4>
+                                    <div class="flex justify-between items-center mb-2 border-b border-gray-800 pb-1">
+                                        <h4 class="text-red-500 font-bebas text-2xl tracking-widest">${b.titulo}</h4>
+                                        ${htmlPlanificacion}
+                                    </div>
                                     <ul class="space-y-1">${listaEjercicios}</ul>
                                     ${htmlTiempo}
                                 </div>
                             `;
-                            // Poblar el menú desplegable de Tiempos
                             selectBloque.innerHTML += `<option value="${b.titulo}">${b.titulo}</option>`;
                         });
                     } catch (e) {
@@ -342,18 +416,17 @@
             document.querySelectorAll('.bloque-wod').forEach(div => {
                 arrayBloques.push({
                     titulo: div.querySelector('.bloque-titulo').value,
+                    planificacion: div.querySelector('.bloque-planificacion').value,
                     tiempo: div.querySelector('.bloque-tiempo').value,
                     texto: div.querySelector('.bloque-texto').value
                 });
             });
-
             const data = { 
                 fecha: document.getElementById('wod-fecha-input').value,
                 tipo: document.getElementById('wod-tipo').value, 
                 descripcion: JSON.stringify(arrayBloques),
-                goal: "" // Ya no usamos el general, pero se manda vacío
+                goal: "" 
             };
-
             const res = await fetch('/api/wods', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
             if(res.ok) { alert("WOD Guardado correctamente."); location.reload(); } else { alert("Error al guardar."); }
         };
@@ -374,7 +447,33 @@
             if(res.ok) { document.getElementById('score-tiempo').value = ''; getScores(); }
         };
 
-        // --- RENDERIZADO DEL HISTORIAL MEJORADO ---
+        // --- LIBRERÍA DE EJERCICIOS ---
+        document.getElementById('form-ejercicio').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                nombre: document.getElementById('ej-nombre').value,
+                link: document.getElementById('ej-link').value
+            };
+            const res = await fetch('/api/ejercicios', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if(res.ok) { document.getElementById('form-ejercicio').reset(); cargarEjercicios(); }
+        };
+
+        async function cargarEjercicios() {
+            try {
+                const res = await fetch('/api/ejercicios');
+                const ejs = await res.json();
+                const cont = document.getElementById('lista-ejercicios');
+                if(ejs.length === 0) { cont.innerHTML = '<div class="text-center text-gray-500 text-sm py-4">No hay videos guardados aún.</div>'; return; }
+                
+                cont.innerHTML = ejs.map(e => `
+                    <a href="${e.link}" target="_blank" class="flex justify-between items-center bg-black/40 hover:bg-red-900/20 p-3 rounded-lg border border-gray-800 transition shadow">
+                        <span class="font-bold text-gray-200 tracking-wide">${e.nombre}</span>
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                    </a>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
         async function cargarHistorialPersonal() {
             const username = localStorage.getItem('ironbox_user');
             if(!username) return;
@@ -382,17 +481,13 @@
             const hist = await res.json();
             const cont = document.getElementById('lista-historial');
             if(hist.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-500">No registraste entrenamientos previos.</p>'; return; }
-            
             cont.innerHTML = hist.map(h => {
                 let detallesBloque = "";
                 try {
                     const bloquesWod = JSON.parse(h.wod.descripcion);
                     const bloqueEncontrado = bloquesWod.find(b => b.titulo === h.bloque);
-                    if(bloqueEncontrado) {
-                        detallesBloque = `<p class="text-gray-400 text-[11px] mt-1 italic border-l-2 border-red-600 pl-2 line-clamp-2">${bloqueEncontrado.texto.replace(/\n/g, ', ')}</p>`;
-                    }
-                } catch(e) { detallesBloque = ""; }
-
+                    if(bloqueEncontrado) { detallesBloque = `<p class="text-gray-400 text-[11px] mt-1 italic border-l-2 border-red-600 pl-2 line-clamp-2">${bloqueEncontrado.texto.replace(/\n/g, ', ')}</p>`; }
+                } catch(e) {}
                 return `
                 <div class="bg-black/40 p-3 rounded-lg border border-gray-800 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between font-bold text-xs mb-1">
@@ -410,7 +505,6 @@
             }).join('');
         }
 
-        // --- RESTO DEL CÓDIGO (RMs, Logins, etc. sin cambios) ---
         document.getElementById('form-rm').onsubmit = async (e) => {
             e.preventDefault();
             const username = localStorage.getItem('ironbox_user');
@@ -435,10 +529,7 @@
             if(rms.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-500">No hay RMs registrados.</p>'; return; }
             cont.innerHTML = rms.map(r => `
                 <div class="flex justify-between items-center bg-black/40 p-2 rounded border border-gray-800 text-xs">
-                    <div>
-                        <span class="font-bold text-gray-300 block">${r.ejercicio}</span>
-                        <span class="text-red-500 font-bold text-sm">${r.peso} KG</span>
-                    </div>
+                    <div><span class="font-bold text-gray-300 block">${r.ejercicio}</span><span class="text-red-500 font-bold text-sm">${r.peso} KG</span></div>
                     <button onclick="actualizarRm('${r.id}', '${r.ejercicio}')" class="bg-gray-800 hover:bg-red-600 border border-gray-700 px-3 py-1 font-bold rounded text-white transition text-[10px]">ACTUALIZAR</button>
                 </div>
             `).join('');
@@ -449,12 +540,19 @@
             const username = localStorage.getItem('ironbox_user');
             if(!username) return;
             const fileInput = document.getElementById('edit-foto');
+            
             const enviarPeticionEdicion = async (fotoBase64) => {
-                const data = { nombre: document.getElementById('edit-nombre').value, apellido: document.getElementById('edit-apellido').value, fotoUrl: fotoBase64 };
+                const data = { 
+                    nombre: document.getElementById('edit-nombre').value, 
+                    apellido: document.getElementById('edit-apellido').value, 
+                    categoria: document.getElementById('edit-categoria').value, // ENVIAMOS LA NUEVA CATEGORÍA
+                    fotoUrl: fotoBase64 
+                };
                 const res = await fetch(`/api/usuarios/${username}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 if(res.ok) { alert('¡Perfil actualizado con éxito!'); cerrarPanelEditar(); loadProfile(); } 
                 else { alert('No se pudieron guardar los cambios.'); }
             };
+
             if(fileInput.files.length > 0) {
                 const reader = new FileReader(); reader.readAsDataURL(fileInput.files[0]); reader.onload = () => enviarPeticionEdicion(reader.result);
             } else { enviarPeticionEdicion(null); }

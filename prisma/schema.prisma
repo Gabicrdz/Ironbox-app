@@ -27,7 +27,7 @@ model Wod {
   fecha       DateTime @unique @db.Date
   tipo        String
   descripcion String   @db.Text
-  goal        String   @db.Text // Lo dejamos por si el coach quiere poner un goal general al día
+  goal        String   @db.Text
   scores      Score[]
 }
 
@@ -37,7 +37,7 @@ model Score {
   wodId         String
   tiempoPuntaje String
   categoria     String
-  bloque        String   @default("GENERAL") // <-- NUEVO CAMPO PARA SABER DE QUÉ BLOQUE ES EL TIEMPO
+  bloque        String   @default("GENERAL")
   createdAt     DateTime @default(now())
   usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   wod           Wod      @relation(fields: [wodId], references: [id], onDelete: Cascade)
@@ -50,4 +50,12 @@ model Rm {
   peso      Float
   createdAt DateTime @default(now())
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+// --- NUEVO MODELO PARA VIDEOS DE EJERCICIOS ---
+model Ejercicio {
+  id        String   @id @default(uuid())
+  nombre    String
+  link      String
+  createdAt DateTime @default(now())
 }
