@@ -37,10 +37,14 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-4 pb-24">
-        
+    <main class="flex-1 overflow-y-auto p-4 pb-24">      
         <div id="sec-wod" class="fade-in">
             <h2 class="text-5xl font-bebas text-center mb-6 uppercase tracking-wide">Wod del Día</h2>
+            <div class="flex gap-2 mb-6 justify-center">
+                <button onclick="filtrarWod('Planificación avanzada')" class="bg-red-600 text-white font-bold py-2 px-4 rounded-full text-xs uppercase tracking-widest hover:bg-red-700 transition">Avanzada</button>
+                <button onclick="filtrarWod('Planificación adaptada')" class="bg-gray-800 text-white font-bold py-2 px-4 rounded-full text-xs uppercase tracking-widest hover:bg-gray-700 transition">Adaptada</button>
+                <button onclick="filtrarWod('TODOS')" class="bg-black border border-gray-600 text-white font-bold py-2 px-4 rounded-full text-xs uppercase tracking-widest hover:border-white transition">Todos</button>
+            </div>
             <div class="glass-panel p-6 rounded-xl shadow-2xl">
                 <p id="wod-fecha" class="text-red-500 font-bold text-center mb-4 tracking-widest text-sm"></p>
                 <h3 id="wod-titulo-principal" class="iron-red font-bold text-4xl mb-4 tracking-wide text-center uppercase"></h3>
@@ -340,54 +344,51 @@
 
         // --- CORRECCIÓN BUG ZONA HORARIA ---
         async function getWod() {
+    try {
+        const res = await fetch('/api/wods/today');
+        const data = await res.json();
+        if(data.id) {
+            wodActualId = data.id;
+            const dateObj = new Date(data.fecha);
+            const fechaFmt = dateObj.toLocaleDateString('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+            
+            document.getElementById('wod-fecha').innerText = fechaFmt;
+            document.getElementById('scores-fecha').innerText = fechaFmt;
+            document.getElementById('wod-titulo-principal').innerText = data.tipo;
+
+            const container = document.getElementById('wod-bloques-container');
+            const selectBloque = document.getElementById('score-bloque');
+            container.innerHTML = ''; selectBloque.innerHTML = '';
+
             try {
-                const res = await fetch('/api/wods/today');
-                const data = await res.json();
-                if(data.id) {
-                    wodActualId = data.id;
-                    const dateObj = new Date(data.fecha);
-                    // Forzamos el uso de UTC para ignorar la zona horaria del celular y mostrar siempre el día exacto guardado
-                    const fechaFmt = dateObj.toLocaleDateString('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+                wodBloquesDisponibles = JSON.parse(data.descripcion);
+                wodBloquesDisponibles.forEach(b => {
+                    const plan = b.planificacion || "Planificación avanzada";
+                    const listaEjercicios = b.texto.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
+                    const htmlTiempo = b.tiempo ? `<p class="text-xs text-gray-500 font-bold mt-2 tracking-widest uppercase">TIEMPO: ${b.tiempo}</p>` : '';
+                    const colorPlan = plan === "Planificación avanzada" ? "text-red-400 border-red-900/50" : "text-gray-400 border-gray-600";
                     
-                    document.getElementById('wod-fecha').innerText = fechaFmt;
-                    document.getElementById('scores-fecha').innerText = fechaFmt;
-                    document.getElementById('wod-titulo-principal').innerText = data.tipo;
-
-                    const container = document.getElementById('wod-bloques-container');
-                    const selectBloque = document.getElementById('score-bloque');
-                    container.innerHTML = ''; selectBloque.innerHTML = '';
-
-                    try {
-                        wodBloquesDisponibles = JSON.parse(data.descripcion);
-                        wodBloquesDisponibles.forEach(b => {
-                            const listaEjercicios = b.texto.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
-                            const htmlTiempo = b.tiempo ? `<p class="text-xs text-gray-500 font-bold mt-2 tracking-widest uppercase">TIEMPO: ${b.tiempo}</p>` : '';
-                            const colorPlan = b.planificacion === "Planificación avanzada" ? "text-red-400 border-red-900/50" : "text-gray-400 border-gray-600";
-                            const htmlPlanificacion = b.planificacion ? `<span class="text-[10px] bg-black/50 ${colorPlan} px-2 py-0.5 rounded border uppercase tracking-widest">${b.planificacion}</span>` : '';
-
-                            container.innerHTML += `
-                                <div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner">
-                                    <div class="flex justify-between items-center mb-2 border-b border-gray-800 pb-1">
-                                        <h4 class="text-red-500 font-bebas text-2xl tracking-widest">${b.titulo}</h4>
-                                        ${htmlPlanificacion}
-                                    </div>
-                                    <ul class="space-y-1">${listaEjercicios}</ul>
-                                    ${htmlTiempo}
-                                </div>
-                            `;
-                            selectBloque.innerHTML += `<option value="${b.titulo}">${b.titulo}</option>`;
-                        });
-                    } catch (e) {
-                        selectBloque.innerHTML = `<option value="GENERAL">GENERAL</option>`;
-                        const listaEjercicios = data.descripcion.split('\n').map(l => `<li class="ml-4 text-gray-300 font-medium">• ${l}</li>`).join('');
-                        container.innerHTML = `<div class="bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner"><h4 class="text-red-500 font-bebas text-2xl tracking-widest mb-2 border-b border-gray-800 pb-1">WOD</h4><ul class="space-y-1">${listaEjercicios}</ul></div>`;
-                    }
-                } else {
-                    document.getElementById('wod-fecha').innerText = "SIN WOD PROGRAMADO";
-                }
-            } catch(e) {}
+                    // AQUÍ ESTABA EL ERROR: Faltaba la clase 'bloque-wod-card' y el data-plan
+                    container.innerHTML += `
+                        <div class="bloque-wod-card bg-black/40 border border-gray-800 p-4 rounded-lg shadow-inner" data-plan="${plan}">
+                            <div class="flex justify-between items-center mb-2 border-b border-gray-800 pb-1">
+                                <h4 class="text-red-500 font-bebas text-2xl tracking-widest">${b.titulo}</h4>
+                                <span class="text-[10px] bg-black/50 ${colorPlan} px-2 py-0.5 rounded border uppercase tracking-widest">${plan}</span>
+                            </div>
+                            <ul class="space-y-1">${listaEjercicios}</ul>
+                            ${htmlTiempo}
+                        </div>
+                    `;
+                    selectBloque.innerHTML += `<option value="${b.titulo}">${b.titulo}</option>`;
+                });
+            } catch (e) {
+                console.error("Error al renderizar bloques", e);
+            }
+        } else {
+            document.getElementById('wod-fecha').innerText = "SIN WOD PROGRAMADO";
         }
-
+    } catch(e) {}
+}
         async function getScores() {
             try {
                 const res = await fetch('/api/scores/today');
@@ -628,7 +629,18 @@
                 } catch (e) { localStorage.removeItem('ironbox_user'); }
             }
         }
-
+        
+        function filtrarWod(plan) {
+    const bloques = document.querySelectorAll('.bloque-wod-card');
+    bloques.forEach(b => {
+        const tipo = b.getAttribute('data-plan');
+        if (plan === 'TODOS' || tipo === plan) {
+            b.classList.remove('hidden');
+        } else {
+            b.classList.add('hidden');
+        }
+    });
+}
         getWod(); loadProfile();
     </script>
 </body>
