@@ -173,4 +173,30 @@ app.get('/api/ejercicios', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Error" }); }
 });
 
+app.put('/api/scores/:id', async (req, res) => {
+    const { id } = req.params;
+    const { username, tiempoPuntaje, categoria } = req.body;
+
+    try {
+        // Buscamos el score y el usuario dueño
+        const score = await prisma.score.findUnique({
+            where: { id: id },
+            include: { usuario: true }
+        });
+
+        if (!score) return res.status(404).json({ error: "No encontrado" });
+        
+        // Validamos si el usuario que hace la petición es el dueño
+        if (score.usuario.username !== username) {
+            return res.status(403).json({ error: "No tienes permiso para editar este tiempo." });
+        }
+
+        const scoreActualizado = await prisma.score.update({
+            where: { id: id },
+            data: { tiempoPuntaje, categoria }
+        });
+        res.json(scoreActualizado);
+    } catch (e) { res.status(500).json({ error: "Error al actualizar" }); }
+});
+
 module.exports = app;

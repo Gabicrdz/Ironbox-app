@@ -390,43 +390,29 @@
     } catch(e) {}
 }
         async function getScores() {
-    try {
-        const res = await fetch('/api/scores/today');
-        const data = await res.json();
-        const contenedor = document.getElementById('lista-scores');
-        
-        if(!data.scores || data.scores.length === 0) {
-            contenedor.innerHTML = '<div class="p-6 text-center text-gray-400">Aún no hay tiempos cargados.</div>';
-            return;
-        }
+    const usernameLogueado = localStorage.getItem('ironbox_user');
+    
+    // ... (dentro de tu bucle forEach de scores) ...
+    // Modificamos la parte donde se dibuja el score en la lista:
+    
+    let botonEditar = "";
+    if (score.usuario.username === usernameLogueado) {
+        botonEditar = `<button onclick="abrirEdicion('${score.id}', '${score.tiempoPuntaje}', '${score.categoria}')" class="text-[10px] bg-gray-800 p-1 rounded text-white ml-2">EDITAR</button>`;
+    }
 
-        let html = '';
-        let categoriaActual = '';
-
-        data.scores.forEach(score => {
-            // Si la categoría cambió, insertamos un encabezado
-            if (score.categoria !== categoriaActual) {
-                categoriaActual = score.categoria;
-                html += `
-                    <div class="bg-gray-900 text-red-500 font-bebas text-lg px-4 py-1 border-b border-gray-700 tracking-widest">
-                        ${categoriaActual}
-                    </div>
-                `;
-            }
-
-            // Agregamos la fila del atleta
-            html += `
-                <div class="grid grid-cols-4 p-3 items-center hover:bg-gray-800/50 transition border-b border-gray-800/50">
-                    <div class="col-span-3 pl-2">
-                        <span class="text-white font-bold block">${score.usuario.nombre} ${score.usuario.apellido}</span>
-                        <span class="text-xs text-gray-500">${score.bloque} | ${score.usuario.horarioClase}hs</span>
-                    </div>
-                    <div class="text-right pr-2 text-white font-bold text-lg">${score.tiempoPuntaje}</div>
-                </div>
-            `;
-        });
-        contenedor.innerHTML = html;
-    } catch (e) { console.error(e); }
+    html += `
+        <div class="grid grid-cols-4 p-3 items-center border-b border-gray-800">
+            <div class="col-span-2">
+                <span class="text-white font-bold">${score.usuario.nombre}</span>
+                <span class="text-xs text-red-500 block">${score.bloque}</span>
+            </div>
+            <div class="text-center text-sm">${score.categoria}</div>
+            <div class="text-right">
+                <span class="text-white font-bold">${score.tiempoPuntaje}</span>
+                ${botonEditar}
+            </div>
+        </div>
+    `;
 }
 
         document.getElementById('form-wod').onsubmit = async (e) => {
@@ -647,6 +633,25 @@
                 } catch (e) { localStorage.removeItem('ironbox_user'); }
             }
         }
+
+        async function abrirEdicion(id, tiempoActual, catActual) {
+    const nuevoTiempo = prompt("Editar tiempo:", tiempoActual);
+    if (!nuevoTiempo) return;
+
+    const username = localStorage.getItem('ironbox_user');
+    const res = await fetch(`/api/scores/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, tiempoPuntaje: nuevoTiempo, categoria: catActual })
+    });
+
+    if (res.ok) {
+        alert("Tiempo actualizado");
+        getScores();
+    } else {
+        alert("No tienes permiso para editar este tiempo.");
+    }
+}
         
         function filtrarWod(plan) {
     const bloques = document.querySelectorAll('.bloque-wod-card');
