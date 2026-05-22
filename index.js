@@ -135,10 +135,12 @@ app.get('/api/scores/today', async (req, res) => {
         const today = new Date();
         const wod = await prisma.wod.findFirst({ where: { fecha: { lte: today } }, orderBy: { fecha: 'desc' } });
         if (!wod) return res.json({ scores: [] });
+        
         const scores = await prisma.score.findMany({
             where: { wodId: wod.id },
             include: { usuario: { select: { nombre: true, apellido: true, horarioClase: true } } },
-            orderBy: [{ bloque: 'asc' }, { tiempoPuntaje: 'asc' }]
+            // Ordenamos: primero por categoria (alfabético), luego por tiempo
+            orderBy: [{ categoria: 'asc' }, { tiempoPuntaje: 'asc' }]
         });
         res.json({ wodId: wod.id, scores });
     } catch (error) { res.status(500).json({ error: 'Error' }); }

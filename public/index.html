@@ -390,26 +390,44 @@
     } catch(e) {}
 }
         async function getScores() {
-            try {
-                const res = await fetch('/api/scores/today');
-                const data = await res.json();
-                const contenedor = document.getElementById('lista-scores');
-                if(!data.scores || data.scores.length === 0) {
-                    contenedor.innerHTML = '<div class="p-6 text-center text-gray-400">Aún no hay tiempos cargados hoy.</div>';
-                    return;
-                }
-                contenedor.innerHTML = data.scores.map(score => `
-                    <div class="grid grid-cols-4 p-3 items-center hover:bg-gray-800/50 transition border-b border-gray-800/50">
-                        <div class="col-span-2 pl-2">
-                            <span class="text-white font-bold block">${score.usuario.nombre} ${score.usuario.apellido}</span>
-                            <span class="text-xs text-red-500 font-bold">${score.bloque}</span> <span class="text-xs text-gray-500 ml-1">| ${score.usuario.horarioClase}hs</span>
-                        </div>
-                        <div class="text-center text-gray-300 font-bold text-sm">${score.categoria}</div>
-                        <div class="text-right pr-2 text-white font-bold text-lg">${score.tiempoPuntaje}</div>
-                    </div>
-                `).join('');
-            } catch (e) {}
+    try {
+        const res = await fetch('/api/scores/today');
+        const data = await res.json();
+        const contenedor = document.getElementById('lista-scores');
+        
+        if(!data.scores || data.scores.length === 0) {
+            contenedor.innerHTML = '<div class="p-6 text-center text-gray-400">Aún no hay tiempos cargados.</div>';
+            return;
         }
+
+        let html = '';
+        let categoriaActual = '';
+
+        data.scores.forEach(score => {
+            // Si la categoría cambió, insertamos un encabezado
+            if (score.categoria !== categoriaActual) {
+                categoriaActual = score.categoria;
+                html += `
+                    <div class="bg-gray-900 text-red-500 font-bebas text-lg px-4 py-1 border-b border-gray-700 tracking-widest">
+                        ${categoriaActual}
+                    </div>
+                `;
+            }
+
+            // Agregamos la fila del atleta
+            html += `
+                <div class="grid grid-cols-4 p-3 items-center hover:bg-gray-800/50 transition border-b border-gray-800/50">
+                    <div class="col-span-3 pl-2">
+                        <span class="text-white font-bold block">${score.usuario.nombre} ${score.usuario.apellido}</span>
+                        <span class="text-xs text-gray-500">${score.bloque} | ${score.usuario.horarioClase}hs</span>
+                    </div>
+                    <div class="text-right pr-2 text-white font-bold text-lg">${score.tiempoPuntaje}</div>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    } catch (e) { console.error(e); }
+}
 
         document.getElementById('form-wod').onsubmit = async (e) => {
             e.preventDefault();
