@@ -89,23 +89,21 @@ app.post('/api/wods', async (req, res) => {
 
 app.get('/api/wods/today', async (req, res) => {
     try {
-        const today = new Date();
-        const wod = await prisma.wod.findFirst({ where: { fecha: { lte: today } }, orderBy: { fecha: 'desc' } });
-        
-        if (wod) {
-            // Aseguramos que la descripción sea un JSON válido
-            try {
-                JSON.parse(wod.descripcion);
-            } catch (e) {
-                // Si falla el parse, es un WOD viejo, lo transformamos a formato nuevo
-                wod.descripcion = JSON.stringify([{
-                    titulo: "WOD",
-                    planificacion: "Planificación avanzada",
-                    tiempo: wod.goal || "",
-                    texto: wod.descripcion
-                }]);
-            }
-        }
+        // Obtenemos el inicio del día actual en hora argentina (UTC-3)
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+        // Buscamos el WOD que coincida específicamente con hoy
+        const wod = await prisma.wod.findFirst({ 
+            where: { 
+                fecha: { 
+                    gte: todayStart, 
+                    lte: todayEnd 
+                } 
+            } 
+        });
+
         res.json(wod || {});
     } catch (e) { res.status(500).json({ error: "Error" }); }
 });
