@@ -401,22 +401,40 @@
             return;
         }
 
+        // Definimos el orden deseado
+        const ordenCategorias = { "RX": 1, "ADVANCED": 2, "SCALED": 3, "PRINCIPIANTE": 4 };
+
+        // Ordenamos los scores según ese peso
+        const scoresOrdenados = data.scores.sort((a, b) => {
+            return (ordenCategorias[a.categoria.toUpperCase()] || 99) - (ordenCategorias[b.categoria.toUpperCase()] || 99);
+        });
+
         let html = '';
-        data.scores.forEach(score => {
-            // Si el usuario es nulo, ponemos "Atleta Desconocido" para que no rompa el código
+        let categoriaActual = '';
+
+        scoresOrdenados.forEach(score => {
+            // Si la categoría cambia, agregamos el encabezado
+            if (score.categoria !== categoriaActual) {
+                categoriaActual = score.categoria;
+                html += `
+                    <div class="bg-red-900/20 text-red-500 font-bebas text-lg px-4 py-1 mt-4 border-l-4 border-red-600 tracking-widest uppercase">
+                        ${categoriaActual}
+                    </div>
+                `;
+            }
+
             const nombre = score.usuario ? `${score.usuario.nombre} ${score.usuario.apellido}` : "Atleta";
             const esMio = score.usuario && score.usuario.username === usernameLogueado;
-            
             const botonEditar = esMio ? 
                 `<button onclick="abrirEdicion('${score.id}', '${score.tiempoPuntaje}', '${score.categoria}')" class="text-[10px] bg-gray-800 p-1 rounded text-white ml-2">EDITAR</button>` : "";
 
             html += `
-                <div class="grid grid-cols-4 p-3 items-center border-b border-gray-800">
+                <div class="grid grid-cols-4 p-3 items-center border-b border-gray-800/50 hover:bg-white/5">
                     <div class="col-span-2">
-                        <span class="text-white font-bold">${nombre}</span>
-                        <span class="text-xs text-red-500 block">${score.bloque}</span>
+                        <span class="text-white font-bold block">${nombre}</span>
+                        <span class="text-[10px] text-gray-500">${score.bloque}</span>
                     </div>
-                    <div class="text-center text-sm">${score.categoria}</div>
+                    <div class="text-center text-sm font-bold text-gray-400">${score.categoria}</div>
                     <div class="text-right text-white font-bold">${score.tiempoPuntaje} ${botonEditar}</div>
                 </div>
             `;
