@@ -89,23 +89,31 @@ app.post('/api/wods', async (req, res) => {
 
 app.get('/api/wods/today', async (req, res) => {
     try {
-        // Obtenemos el inicio del día actual en hora argentina (UTC-3)
+        // 1. Obtenemos la hora actual en UTC
         const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        
+        // 2. Ajustamos a la zona horaria de Argentina (UTC-3)
+        // Restamos 3 horas a la hora UTC actual
+        const argentinaDate = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+        
+        // 3. Definimos el inicio y fin del día ajustado
+        const startOfDay = new Date(argentinaDate.getFullYear(), argentinaDate.getMonth(), argentinaDate.getDate(), 0, 0, 0);
+        const endOfDay = new Date(argentinaDate.getFullYear(), argentinaDate.getMonth(), argentinaDate.getDate(), 23, 59, 59);
 
-        // Buscamos el WOD que coincida específicamente con hoy
+        // 4. Buscamos el WOD en ese rango
         const wod = await prisma.wod.findFirst({ 
             where: { 
                 fecha: { 
-                    gte: todayStart, 
-                    lte: todayEnd 
+                    gte: startOfDay, 
+                    lte: endOfDay 
                 } 
             } 
         });
 
         res.json(wod || {});
-    } catch (e) { res.status(500).json({ error: "Error" }); }
+    } catch (e) { 
+        res.status(500).json({ error: "Error al buscar el WOD" }); 
+    }
 });
 
 app.get('/api/wods/date/:date', async (req, res) => {
