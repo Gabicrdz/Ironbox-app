@@ -389,23 +389,40 @@
         }
     } catch(e) {}
 }
-        async function getScores() {
+       async function getScores() {
+    const usernameLogueado = localStorage.getItem('ironbox_user');
     try {
         const res = await fetch('/api/scores/today');
         const data = await res.json();
         const contenedor = document.getElementById('lista-scores');
         
-        console.log("Datos recibidos de scores:", data); // Mira esto en la consola del navegador (F12)
-
         if(!data.scores || data.scores.length === 0) {
-            contenedor.innerHTML = `<div class="p-6 text-center text-gray-400">No hay tiempos para el WOD ID: ${data.wodId || 'Desconocido'}</div>`;
+            contenedor.innerHTML = '<div class="p-6 text-center text-gray-400">No hay tiempos cargados hoy.</div>';
             return;
         }
 
-        // ... resto de tu código de renderizado ...
-    } catch (e) {
-        console.error("Error al cargar scores:", e);
-    }
+        let html = '';
+        data.scores.forEach(score => {
+            // Si el usuario es nulo, ponemos "Atleta Desconocido" para que no rompa el código
+            const nombre = score.usuario ? `${score.usuario.nombre} ${score.usuario.apellido}` : "Atleta";
+            const esMio = score.usuario && score.usuario.username === usernameLogueado;
+            
+            const botonEditar = esMio ? 
+                `<button onclick="abrirEdicion('${score.id}', '${score.tiempoPuntaje}', '${score.categoria}')" class="text-[10px] bg-gray-800 p-1 rounded text-white ml-2">EDITAR</button>` : "";
+
+            html += `
+                <div class="grid grid-cols-4 p-3 items-center border-b border-gray-800">
+                    <div class="col-span-2">
+                        <span class="text-white font-bold">${nombre}</span>
+                        <span class="text-xs text-red-500 block">${score.bloque}</span>
+                    </div>
+                    <div class="text-center text-sm">${score.categoria}</div>
+                    <div class="text-right text-white font-bold">${score.tiempoPuntaje} ${botonEditar}</div>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    } catch (e) { console.error(e); }
 }
 
         document.getElementById('form-wod').onsubmit = async (e) => {

@@ -133,17 +133,22 @@ app.post('/api/scores', async (req, res) => {
 app.get('/api/scores/today', async (req, res) => {
     try {
         const today = new Date();
+        // Buscamos el WOD de hoy
         const wod = await prisma.wod.findFirst({ where: { fecha: { lte: today } }, orderBy: { fecha: 'desc' } });
         if (!wod) return res.json({ scores: [] });
-        
+
         const scores = await prisma.score.findMany({
             where: { wodId: wod.id },
-            include: { usuario: { select: { nombre: true, apellido: true, horarioClase: true } } },
-            // Ordenamos: primero por categoria (alfabético), luego por tiempo
+            include: { usuario: true }, // Traemos TODO el objeto usuario para depurar
             orderBy: [{ categoria: 'asc' }, { tiempoPuntaje: 'asc' }]
         });
+        
+        console.log("Scores encontrados:", scores); // Esto aparecerá en los Logs de Vercel
         res.json({ wodId: wod.id, scores });
-    } catch (error) { res.status(500).json({ error: 'Error' }); }
+    } catch (error) { 
+        console.error("Error en scores:", error);
+        res.status(500).json({ error: 'Error' }); 
+    }
 });
 
 app.get('/api/usuarios/:username/historial', async (req, res) => {
