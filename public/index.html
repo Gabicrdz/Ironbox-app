@@ -194,7 +194,7 @@
                     <h2 class="text-4xl font-bebas mb-4 uppercase text-center">Registrarse</h2>
                     <form id="form-reg" class="space-y-4 glass-panel p-5 rounded-lg shadow-xl">
                         <input type="text" name="username" placeholder="Usuario" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
-                        <input type="password" name="password" placeholder="Contraseña" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
+                        <input type="password" name="password" placeholder="Contraseña (mínimo 6 caracteres)" minlength="6" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required>
                         <div class="flex gap-3"><input type="text" name="nombre" placeholder="Nombre" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required><input type="text" name="apellido" placeholder="Apellido" class="w-full p-3 bg-black border border-gray-700 rounded outline-none" required></div>
                         <select name="rol" id="select-rol" class="w-full p-3 bg-red-900/30 border border-red-800 rounded font-bold outline-none text-white">
                             <option value="ATLETA">SOY ATLETA</option><option value="PROFESOR">SOY PROFESOR</option>

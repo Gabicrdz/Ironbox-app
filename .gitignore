@@ -3,3 +3,6 @@ node_modules
 .env
 
 /generated/prisma
+
+# Fotos subidas por usuarios
+uploads/

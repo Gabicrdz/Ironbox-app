@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
@@ -12,28 +13,73 @@ app.use(express.static('public'));
 
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
 
+// --- CONTRASEÑAS ---
+// Se guardan con scrypt y una sal aleatoria: "scrypt$<sal>$<hash>".
+// Nunca se guarda ni se devuelve la contraseña en texto plano.
+function cifrarClave(clave) {
+    const sal = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(clave, sal, 64).toString('hex');
+    return `scrypt$${sal}$${hash}`;
+}
+
+function claveCorrecta(clave, guardada) {
+    if (typeof clave !== 'string' || typeof guardada !== 'string') return false;
+    const partes = guardada.split('$');
+    if (partes.length !== 3 || partes[0] !== 'scrypt') return false;
+    const esperado = Buffer.from(partes[2], 'hex');
+    const calculado = crypto.scryptSync(clave, partes[1], esperado.length);
+    return crypto.timingSafeEqual(esperado, calculado);
+}
+
+// Usuarios creados antes de cifrar las contraseñas: se aceptan una vez
+// y se vuelven a guardar cifradas.
+function esClaveVieja(guardada) {
+    return typeof guardada === 'string' && !guardada.startsWith('scrypt$');
+}
+
+function sinClave(usuario) {
+    if (!usuario) return usuario;
+    const { password, ...resto } = usuario;
+    return resto;
+}
+
 // --- USUARIOS Y AUTH ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = await prisma.usuario.findUnique({ where: { username } });
-        if (user && user.password === password) { res.json(user); } else { res.status(401).json({ error: "Credenciales incorrectas" }); }
+        if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });
+
+        if (esClaveVieja(user.password)) {
+            const a = Buffer.from(String(password ?? ''));
+            const b = Buffer.from(user.password);
+            if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+                return res.status(401).json({ error: "Credenciales incorrectas" });
+            }
+            await prisma.usuario.update({ where: { id: user.id }, data: { password: cifrarClave(password) } });
+            return res.json(sinClave(user));
+        }
+
+        if (claveCorrecta(password, user.password)) { res.json(sinClave(user)); } else { res.status(401).json({ error: "Credenciales incorrectas" }); }
     } catch (e) { res.status(500).json({ error: "Error" }); }
 });
 
 app.post('/api/usuarios', async (req, res) => {
     const { username, password, nombre, apellido, edad, horarioClase, rol, categoria, fotoUrl } = req.body;
+    if (typeof password !== 'string' || password.length < 6) {
+        return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+    }
     try {
         const usuario = await prisma.usuario.create({
-            data: { username, password, nombre, apellido, edad: parseInt(edad), horarioClase, rol, categoria, fotoUrl }
+            data: { username, password: cifrarClave(password), nombre, apellido, edad: parseInt(edad), horarioClase, rol, categoria, fotoUrl }
         });
-        res.status(201).json(usuario);
+        res.status(201).json(sinClave(usuario));
     } catch (e) { res.status(400).json({ error: "Error al registrar" }); }
 });
 
 app.get('/api/usuarios/:username', async (req, res) => {
     const user = await prisma.usuario.findUnique({ where: { username: req.params.username } });
-    user ? res.json(user) : res.status(404).json({ error: "No encontrado" });
+    user ? res.json(sinClave(user)) : res.status(404).json({ error: "No encontrado" });
 });
 
 app.put('/api/usuarios/:username', async (req, res) => {
@@ -44,7 +90,7 @@ app.put('/api/usuarios/:username', async (req, res) => {
         if (categoria) datosActualizar.categoria = categoria;
         if (fotoUrl) datosActualizar.fotoUrl = fotoUrl;
         const usuarioActualizado = await prisma.usuario.update({ where: { username }, data: datosActualizar });
-        res.json(usuarioActualizado);
+        res.json(sinClave(usuarioActualizado));
     } catch (e) { res.status(400).json({ error: "No se pudo actualizar el perfil." }); }
 });
 
@@ -145,11 +191,10 @@ app.get('/api/scores/today', async (req, res) => {
 
         const scores = await prisma.score.findMany({
             where: { wodId: wod.id },
-            include: { usuario: true }, // Traemos TODO el objeto usuario para depurar
+            include: { usuario: { select: { username: true, nombre: true, apellido: true, fotoUrl: true, categoria: true, rol: true } } },
             orderBy: [{ categoria: 'asc' }, { tiempoPuntaje: 'asc' }]
         });
-        
-        console.log("Scores encontrados:", scores); // Esto aparecerá en los Logs de Vercel
+
         res.json({ wodId: wod.id, scores });
     } catch (error) { 
         console.error("Error en scores:", error);
@@ -192,7 +237,7 @@ app.put('/api/scores/:id', async (req, res) => {
         // Buscamos el score y el usuario dueño
         const score = await prisma.score.findUnique({
             where: { id: id },
-            include: { usuario: true }
+            include: { usuario: { select: { username: true } } }
         });
 
         if (!score) return res.status(404).json({ error: "No encontrado" });

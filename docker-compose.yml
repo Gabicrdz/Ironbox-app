@@ -6,8 +6,8 @@ services:
     container_name: ironbox_postgres
     restart: always
     environment:
-      POSTGRES_USER: admin_ironbox
-      POSTGRES_PASSWORD: IronBoxSecurePassword2026
+      POSTGRES_USER: ${POSTGRES_USER:-ironbox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definí POSTGRES_PASSWORD en el archivo .env}
       POSTGRES_DB: ironbox_core
     ports:
       - "5432:5432"
